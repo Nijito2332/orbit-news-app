@@ -10,6 +10,7 @@ import { translateNews }    from './TranslationService.js';
 import { processFeed }      from './ProcessingPipeline.js';
 import { applyAll, getLang } from './i18n.js';
 import { RealtimeEngine }   from './RealtimeEngine.js';
+import { initAuth, isLoggedIn, getProfile, showAuthModal, logout, trackRead } from './AuthManager.js';
 
 // ─── Capacitor ────────────────────────────────────────────────────────────────
 const isCapacitor = typeof window !== 'undefined' && !!window.Capacitor;
@@ -271,6 +272,34 @@ async function boot() {
       }
     }
   }, 15_000);
+
+  // Auth — wire profile button
+  await initAuth((user, profile) => {
+    const avatar = document.querySelector('.avatar');
+    const btn    = document.getElementById('btn-profile');
+    if (user) {
+      const name = profile?.name || user.email?.split('@')[0] || 'U';
+      if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+      btn?.setAttribute('title', name);
+    } else {
+      if (avatar) avatar.textContent = 'N';
+    }
+  });
+
+  // Profile button: logged in → open profile panel, logged out → show auth modal
+  document.getElementById('btn-profile')?.addEventListener('click', () => {
+    if (isLoggedIn()) {
+      _ui?.onHotspotLeave();
+      document.getElementById('profile-panel')?.classList.toggle('hidden');
+    } else {
+      showAuthModal('register', (user) => {
+        if (user) {
+          const avatar = document.querySelector('.avatar');
+          if (avatar) avatar.textContent = user.email?.charAt(0)?.toUpperCase() || 'U';
+        }
+      });
+    }
+  });
 
   // Onboarding
   document.querySelectorAll('.ob-cat').forEach(b => b.addEventListener('click', () => b.classList.toggle('selected')));

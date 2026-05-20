@@ -1,0 +1,10 @@
+﻿node_modules/
+dist/
+.env
+*.log
+.DS_Store
+orbit-server/node_modules/
+orbit-server/.env
+android/.idea/
+ios/
+.vercel
