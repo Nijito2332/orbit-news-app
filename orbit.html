@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>ORBIT — The Future of News</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.148.0/examples/js/controls/OrbitControls.js"></script>
+<style>
+/* ─────────────────────────────────────────────────────
+   ORBIT DESIGN SYSTEM
+───────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07070F;--bg2:#0D0D1A;
+  --glass:rgba(13,13,26,.72);--glass-l:rgba(255,255,255,.04);
+  --gb:rgba(255,255,255,.08);--gb-hi:rgba(255,255,255,.15);
+  --blue:#00D4FF;--purple:#7B2FBE;--gold:#FFD700;--green:#00FF88;
+  --orange:#FF6B35;--pink:#FF69B4;--lime:#A3E635;--red:#FF4757;
+  --text:#FFF;--t60:rgba(255,255,255,.6);--t40:rgba(255,255,255,.4);--t20:rgba(255,255,255,.2);
+  --fd:'Space Grotesk',sans-serif;--fb:'Inter',sans-serif;
+  --th:64px;--sw:220px;--pw:380px;--trh:44px;
+  --blur:20px;--r:16px;--rs:10px;
+  --tf:.15s ease;--tn:.3s cubic-bezier(.4,0,.2,1);--ts:.5s cubic-bezier(.4,0,.2,1);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+button{border:none;background:none;cursor:pointer;color:inherit;font-family:inherit}
+input{outline:none;border:none;background:none;color:inherit;font-family:inherit}
+svg{display:block;flex-shrink:0}
+.hidden{display:none!important}
+
+/* ─── LOADING ─── */
+#loading-screen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.lc{text-align:center;display:flex;flex-direction:column;align-items:center;gap:28px}
+.ll{position:relative;width:96px;height:96px;display:flex;align-items:center;justify-content:center}
+.lr{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:var(--blue);border-right-color:var(--purple);animation:spin 1.2s linear infinite}
+.lr::after{content:'';position:absolute;inset:6px;border-radius:50%;border:1px solid transparent;border-bottom-color:var(--blue);animation:spin .8s linear infinite reverse}
+.lt{font-family:var(--fd);font-size:18px;font-weight:700;letter-spacing:.3em}
+.lbw{width:220px;height:2px;background:var(--gb);border-radius:99px;overflow:hidden}
+.lb{height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:99px;transition:width .3s ease;box-shadow:0 0 12px var(--blue)}
+.ll2{font-size:12px;color:var(--t40);letter-spacing:.05em;font-family:var(--fd)}
+
+/* ─── ONBOARDING ─── */
+#onboarding{position:fixed;inset:0;z-index:1000;background:radial-gradient(ellipse at 50% 60%,#0D0D2E,var(--bg) 70%);display:flex;align-items:center;justify-content:center}
+.ob-step{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.ob-step.active{opacity:1;pointer-events:all}
+.ob-logo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.ob-li{font-size:36px;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ob-lt{font-family:var(--fd);font-size:28px;font-weight:700;letter-spacing:.3em}
+.ob-badge{font-size:11px;font-weight:600;letter-spacing:.3em;color:var(--blue);background:rgba(0,212,255,.1);padding:4px 12px;border-radius:99px;border:1px solid rgba(0,212,255,.2);margin-bottom:20px}
+.ob-h{font-family:var(--fd);font-size:clamp(34px,7vw,60px);font-weight:700;line-height:1.05;text-align:center;margin-bottom:16px;letter-spacing:-.02em}
+.ob-p{font-size:16px;color:var(--t60);line-height:1.6;text-align:center;max-width:360px;margin-bottom:40px}
+.ob-feats{display:flex;flex-direction:column;gap:12px;margin-bottom:40px;width:100%;max-width:320px}
+.ob-feat{display:flex;align-items:center;gap:12px;background:var(--glass-l);border:1px solid var(--gb);border-radius:var(--rs);padding:12px 16px;font-size:14px;color:var(--t60)}
+.ob-cg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:40px;width:100%;max-width:340px}
+.ob-cat{padding:12px 16px;border-radius:var(--rs);border:1px solid var(--gb);background:var(--glass-l);font-size:14px;color:var(--t60);transition:all var(--tf);text-align:left}
+.ob-cat.sel{border-color:var(--blue);background:rgba(0,212,255,.1);color:var(--blue)}
+.ob-btn{display:flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:99px;font-family:var(--fd);font-size:16px;font-weight:600;color:#fff;transition:all var(--tf);box-shadow:0 4px 24px rgba(0,212,255,.3)}
+.ob-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,.4)}
+.ob-btn svg{width:18px;height:18px}
+.ob-launch{padding:16px 36px;font-size:18px}
+.ob-skip{position:absolute;bottom:48px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--t40);cursor:pointer;transition:color var(--tf)}
+.ob-skip:hover{color:var(--t60)}
+.ob-ri{font-size:80px;margin-bottom:24px;animation:float 3s ease-in-out infinite;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ob-dots{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;gap:8px}
+.ob-dot{width:6px;height:6px;border-radius:99px;background:var(--t20);transition:all var(--tn)}
+.ob-dot.active{width:24px;background:var(--blue)}
+
+/* ─── APP ─── */
+#app{position:fixed;inset:0}
+#globe-canvas{position:absolute;inset:0;width:100%!important;height:100%!important;cursor:grab}
+#globe-canvas:active{cursor:grabbing}
+
+/* ─── TOPBAR ─── */
+.topbar{position:absolute;top:0;left:0;right:0;height:var(--th);display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--glass);backdrop-filter:blur(var(--blur)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur)) saturate(1.8);border-bottom:1px solid var(--gb);z-index:100}
+.tb-left,.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tb-center{flex:1;max-width:500px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-i{font-size:24px;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.logo-t{font-family:var(--fd);font-size:18px;font-weight:700;letter-spacing:.2em}
+.srchw{position:relative;display:flex;align-items:center;background:var(--glass-l);border:1px solid var(--gb);border-radius:99px;padding:0 16px;gap:10px;transition:border-color var(--tf),box-shadow var(--tf)}
+.srchw:focus-within{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,212,255,.15)}
+.srch-icon{width:16px;height:16px;color:var(--t40);flex-shrink:0}
+.srch-inp{flex:1;height:38px;font-size:14px;color:var(--text);caret-color:var(--blue)}
+.srch-inp::placeholder{color:var(--t40)}
+.srch-res{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--glass);border:1px solid var(--gb);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border-radius:var(--r);overflow:hidden;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:200}
+.srch-res.vis{display:flex}
+.srch-ri{padding:12px 16px;display:flex;gap:12px;align-items:center;cursor:pointer;transition:background var(--tf);font-size:14px}
+.srch-ri:hover{background:var(--glass-l)}
+.srch-rcat{font-size:11px;color:var(--t40)}
+.tb-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--glass-l);border:1px solid var(--gb);border-radius:99px;font-size:13px;font-weight:500;transition:all var(--tf)}
+.tb-btn:hover{border-color:var(--gb-hi)}
+.tb-btn svg{width:15px;height:15px;color:var(--blue)}
+.tb-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--glass-l);border:1px solid var(--gb);position:relative;transition:all var(--tf)}
+.tb-icon:hover{border-color:var(--gb-hi)}
+.tb-icon svg{width:17px;height:17px;color:var(--t60)}
+.nbadge{position:absolute;top:2px;right:2px;width:16px;height:16px;background:var(--blue);border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#000;border:2px solid var(--bg)}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;font-family:var(--fd)}
+
+/* ─── SIDEBAR ─── */
+.sidebar{position:absolute;top:var(--th);left:0;bottom:var(--trh);width:var(--sw);background:var(--glass);backdrop-filter:blur(var(--blur)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur)) saturate(1.8);border-right:1px solid var(--gb);display:flex;flex-direction:column;padding:16px 0;overflow-y:auto;overflow-x:hidden;z-index:90;scrollbar-width:thin;scrollbar-color:var(--gb) transparent}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--gb);border-radius:99px}
+.slbl{font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--t40);padding:0 16px;margin-bottom:6px;font-family:var(--fd)}
+.snav{display:flex;flex-direction:column;gap:2px;padding:0 8px;margin-bottom:8px}
+.sitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rs);font-size:13.5px;color:var(--t60);transition:all var(--tf)}
+.sitem:hover{background:var(--glass-l);color:var(--text)}
+.sitem.active{background:rgba(0,212,255,.1);color:var(--blue);border:1px solid rgba(0,212,255,.2)}
+.sii{font-size:17px;flex-shrink:0;line-height:1}
+.sil{flex:1}
+.sic{font-size:11px;color:var(--t40);font-weight:500;background:var(--glass-l);padding:2px 6px;border-radius:99px}
+.sitem.active .sic{background:rgba(0,212,255,.15);color:var(--blue)}
+.sdiv{height:1px;background:var(--gb);margin:12px 16px}
+.slive{display:flex;align-items:center;gap:8px;padding:4px 16px;font-size:12px;color:var(--t40);margin-bottom:8px}
+.wclock{display:flex;flex-direction:column;gap:6px;padding:4px 16px}
+.crow{display:flex;justify-content:space-between;align-items:center}
+.ccity{font-size:11px;font-weight:600;color:var(--t40);letter-spacing:.1em}
+.ctime{font-size:12px;font-weight:500;color:var(--t60);font-variant-numeric:tabular-nums}
+
+/* ─── NEWS PANEL ─── */
+.npanel{position:absolute;top:var(--th);right:0;bottom:var(--trh);width:var(--pw);background:var(--glass);backdrop-filter:blur(var(--blur)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur)) saturate(1.8);border-left:1px solid var(--gb);display:flex;flex-direction:column;transform:translateX(100%);transition:transform var(--ts);z-index:90;overflow:hidden}
+.npanel.open{transform:translateX(0)}
+.nph{padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.nploc{display:flex;align-items:center;gap:12px}
+.npflag{font-size:28px;line-height:1}
+.npcountry{font-family:var(--fd);font-size:18px;font-weight:600}
+.npsub{font-size:12px;color:var(--t40);margin-top:2px}
+.npc-btn{width:32px;height:32px;border-radius:50%;background:var(--glass-l);border:1px solid var(--gb);display:flex;align-items:center;justify-content:center;transition:all var(--tf)}
+.npc-btn:hover{border-color:var(--gb-hi)}
+.npc-btn svg{width:14px;height:14px}
+.nptabs{display:flex;gap:4px;padding:16px 20px 0;flex-shrink:0}
+.ntab{flex:1;padding:8px;border-radius:var(--rs);font-size:13px;font-weight:500;color:var(--t40);transition:all var(--tf)}
+.ntab:hover{color:var(--t60)}
+.ntab.active{background:rgba(0,212,255,.1);color:var(--blue)}
+.ncc{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:var(--gb) transparent}
+.ncc::-webkit-scrollbar{width:4px}
+.ncc::-webkit-scrollbar-thumb{background:var(--gb);border-radius:99px}
+.ncard{background:var(--glass-l);border:1px solid var(--gb);border-radius:var(--r);padding:16px;cursor:pointer;transition:all var(--tf);position:relative;overflow:hidden;animation:cardIn .4s ease both}
+.ncard:hover{border-color:var(--gb-hi);transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.ncard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ca,var(--blue));opacity:.6}
+.ncm{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ncc2{font-size:10px;font-weight:600;letter-spacing:.1em;padding:3px 8px;border-radius:99px;background:var(--cab,rgba(0,212,255,.1));color:var(--ca,var(--blue));font-family:var(--fd)}
+.nct{font-size:12px;color:var(--t40);margin-left:auto}
+.ncs{font-size:11px;color:var(--t40)}
+.nctit{font-family:var(--fd);font-size:15px;font-weight:600;line-height:1.35;margin-bottom:8px;color:var(--text)}
+.ncsum{font-size:13px;color:var(--t60);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ncf{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.ncrt{font-size:11px;color:var(--t40)}
+.nctr{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500}
+.nctr.rising{color:var(--green)}
+.nctr.stable{color:var(--t40)}
+.nctr svg{width:12px;height:12px}
+
+/* ─── TRENDING ─── */
+.tbar{position:absolute;bottom:0;left:var(--sw);right:0;height:var(--trh);background:var(--glass);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border-top:1px solid var(--gb);display:flex;align-items:center;gap:16px;padding:0 20px;z-index:90;overflow:hidden}
+.tlbl{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--t40);flex-shrink:0;font-family:var(--fd)}
+.tscroll{flex:1;overflow:hidden;display:flex;align-items:center}
+.tinner{display:flex;gap:24px;animation:scrollLeft 50s linear infinite;white-space:nowrap}
+.titem{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--t60);transition:color var(--tf);white-space:nowrap;flex-shrink:0}
+.titem:hover{color:var(--text)}
+.trank{font-size:10px;color:var(--t40);font-weight:600}
+.tsep{color:var(--t20)}
+
+/* ─── GLOBE CONTROLS ─── */
+.gctrl{position:absolute;right:20px;bottom:calc(var(--trh) + 20px);display:flex;flex-direction:column;gap:6px;z-index:80}
+.gcbtn{width:40px;height:40px;border-radius:10px;background:var(--glass);border:1px solid var(--gb);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));display:flex;align-items:center;justify-content:center;transition:all var(--tf);color:var(--t60)}
+.gcbtn:hover{border-color:var(--gb-hi);color:var(--text)}
+.gcbtn.active{border-color:var(--blue);color:var(--blue);background:rgba(0,212,255,.1)}
+.gcbtn svg{width:16px;height:16px}
+
+/* ─── TOOLTIP ─── */
+.ttpw{position:absolute;pointer-events:none;z-index:150;background:var(--glass);border:1px solid var(--gb);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border-radius:var(--rs);padding:8px 14px;display:flex;align-items:center;gap:8px;opacity:0;transition:opacity var(--tf);transform:translate(-50%,-120%);white-space:nowrap}
+.ttpw.vis{opacity:1}
+.ttf{font-size:20px;line-height:1}
+.ttn{font-size:14px;font-weight:600;font-family:var(--fd)}
+
+/* ─── LIVE DOT ─── */
+.ldot{width:8px;height:8px;border-radius:50%;background:#00FF88;box-shadow:0 0 6px #00FF88;animation:pulseDot 2s ease-in-out infinite;flex-shrink:0}
+.ldot.sm{width:6px;height:6px}
+
+/* ─── AI PANEL ─── */
+.aipanel{position:absolute;top:calc(var(--th) + 8px);right:20px;width:360px;max-height:calc(100vh - var(--th) - var(--trh) - 32px);background:var(--glass);border:1px solid var(--gb);backdrop-filter:blur(var(--blur)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur)) saturate(1.8);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;z-index:200;animation:panelDrop .3s ease;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.aiph{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gb);flex-shrink:0}
+.aipt{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;font-family:var(--fd);color:var(--blue)}
+.aipc{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.br{font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--t40);font-family:var(--fd);margin-bottom:6px}
+.bt{font-size:14px;line-height:1.6;color:var(--t60)}
+.bt strong{color:var(--text);font-weight:600}
+.xbtn{width:28px;height:28px;border-radius:50%;background:var(--glass-l);display:flex;align-items:center;justify-content:center;transition:all var(--tf)}
+.xbtn:hover{background:rgba(255,255,255,.08)}
+.xbtn svg{width:13px;height:13px}
+
+/* ─── PROFILE PANEL ─── */
+.ppanel{position:absolute;top:calc(var(--th) + 8px);right:20px;width:300px;background:var(--glass);border:1px solid var(--gb);backdrop-filter:blur(var(--blur)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur)) saturate(1.8);border-radius:var(--r);z-index:200;animation:panelDrop .3s ease;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden}
+.pph{display:flex;align-items:center;gap:12px;padding:20px;border-bottom:1px solid var(--gb)}
+.ppav{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.ppname{font-size:15px;font-weight:600;font-family:var(--fd)}
+.ppplan{font-size:11px;color:var(--t40);margin-top:2px}
+.ppup{padding:20px;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(123,47,190,.06));border-bottom:1px solid var(--gb)}
+.upbadge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,var(--blue),var(--purple));padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;color:#fff;margin-bottom:8px}
+.ppup p{font-size:13px;color:var(--t60);line-height:1.5;margin-bottom:12px}
+.upbtn{width:100%;padding:10px;background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:var(--rs);font-size:14px;font-weight:600;color:#fff;font-family:var(--fd);transition:opacity var(--tf)}
+.upbtn:hover{opacity:.9}
+.ppstats{display:flex;padding:20px}
+.stat{flex:1;text-align:center}
+.stat:not(:last-child){border-right:1px solid var(--gb)}
+.snum{display:block;font-family:var(--fd);font-size:22px;font-weight:700}
+.slbl2{display:block;font-size:11px;color:var(--t40);margin-top:2px}
+
+/* ─── ARTICLE MODAL ─── */
+.amodal{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-end;justify-content:center}
+.aoverlay{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);cursor:pointer}
+.amcontent{position:relative;width:100%;max-width:680px;max-height:88vh;background:var(--bg2);border:1px solid var(--gb);border-radius:var(--r) var(--r) 0 0;display:flex;flex-direction:column;overflow:hidden;animation:modalUp .4s cubic-bezier(.4,0,.2,1);box-shadow:0 -20px 80px rgba(0,0,0,.6)}
+.amh{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gb);flex-shrink:0;background:var(--glass);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur))}
+.abk{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--t60);transition:color var(--tf);padding:4px}
+.abk:hover{color:var(--text)}
+.abk svg{width:16px;height:16px}
+.aacts{display:flex;gap:8px}
+.aabtn{width:36px;height:36px;border-radius:50%;background:var(--glass-l);border:1px solid var(--gb);display:flex;align-items:center;justify-content:center;transition:all var(--tf)}
+.aabtn:hover{border-color:var(--gb-hi)}
+.aabtn svg{width:16px;height:16px;color:var(--t60)}
+.abody{flex:1;overflow-y:auto;padding:32px 28px;scrollbar-width:thin;scrollbar-color:var(--gb) transparent}
+.abody::-webkit-scrollbar{width:4px}
+.abody::-webkit-scrollbar-thumb{background:var(--gb);border-radius:99px}
+.acbadge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.1em;padding:4px 12px;border-radius:99px;margin-bottom:16px}
+.aheadline{font-family:var(--fd);font-size:clamp(20px,3vw,28px);font-weight:700;line-height:1.25;margin-bottom:16px}
+.ameta{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--gb)}
+.asrc{font-size:13px;font-weight:600;color:var(--t60)}
+.adot{width:3px;height:3px;border-radius:50%;background:var(--t40)}
+.adate{font-size:13px;color:var(--t40)}
+.art{font-size:12px;color:var(--t40);margin-left:auto}
+.aai{background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(123,47,190,.06));border:1px solid rgba(0,212,255,.15);border-radius:var(--rs);padding:16px;margin-bottom:24px}
+.aail{font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--blue);font-family:var(--fd);margin-bottom:8px}
+.aait{font-size:14px;color:var(--t60);line-height:1.6}
+.acontent{font-size:15px;color:var(--t60);line-height:1.8}
+.acontent p{margin-bottom:16px}
+.acontent strong{color:var(--text)}
+.atags{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;padding-top:20px;border-top:1px solid var(--gb)}
+.atag{padding:5px 12px;border-radius:99px;background:var(--glass-l);border:1px solid var(--gb);font-size:12px;color:var(--t60);cursor:pointer;transition:all var(--tf)}
+.atag:hover{border-color:var(--gb-hi);color:var(--text)}
+
+/* ─── ANIMATIONS ─── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+@keyframes scrollLeft{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes panelDrop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes modalUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── MOBILE ─── */
+@media(max-width:768px){
+  :root{--sw:0px;--pw:100%;--th:56px}
+  .sidebar{display:none}
+  .tb-btn span{display:none}
+  .tb-btn{padding:8px 10px}
+  .npanel{top:auto;bottom:0;right:0;left:0;width:100%;height:75vh;border-left:none;border-top:1px solid var(--gb);border-radius:var(--r) var(--r) 0 0;transform:translateY(100%)}
+  .npanel.open{transform:translateY(0)}
+  .tbar{left:0}
+/* Mobile article modal */
+.aheadline{font-size:clamp(17px,4.5vw,24px)!important}
+.ameta{flex-wrap:wrap;gap:6px}
+.adate{font-size:11px}
+.amh{padding:12px 16px}
+.abody{padding:20px 16px}
+/* Mobile news panel */
+.nph{padding:14px 14px 0}
+.npcountry{font-size:16px}
+.npsub{font-size:11px}
+.nctit{font-size:14px}
+/* Safe area for modal bottom */
+.amcontent{padding-bottom:env(safe-area-inset-bottom,0px)}
+.npanel{padding-bottom:env(safe-area-inset-bottom,0px)}
+}
+/* ─── Language dropdown ─── */
+.lo{display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;font-size:14px;color:var(--t60);transition:background var(--tf);text-align:left}
+.lo:hover{background:var(--glass-l);color:var(--text)}
+.lo-active{color:var(--blue);background:rgba(0,212,255,.08)}
+#ldrop.ldrop-vis{display:flex!important}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="ls">
+  <div class="lc">
+    <div class="ll"><div class="lr"></div><span class="lt">ORBIT</span></div>
+    <div class="lbw"><div class="lb" id="lb"></div></div>
+    <p class="ll2" id="ll2">Initializing globe…</p>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding" class="hidden">
+  <div class="ob-step active" data-step="1">
+    <div class="ob-logo-wrap">
+      <span class="ob-li">◎</span>
+      <span class="ob-lt">ORBIT</span>
+    </div>
+    <h1 class="ob-h">The Future<br/>of News</h1>
+    <p class="ob-p">Navigate the world. Discover stories that matter. Experience news like never before.</p>
+    <button class="ob-btn" id="ob-next-1">
+      <span>Explore</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <div class="ob-skip" id="ob-skip">Skip intro</div>
+  </div>
+  <div class="ob-step" data-step="2">
+    <div class="ob-badge">01</div>
+    <h2 class="ob-h">Navigate<br/>the Globe</h2>
+    <p class="ob-p">Spin a live 3D Earth with real-time day/night lighting. Tap any glowing hotspot to dive into stories.</p>
+    <div class="ob-feats">
+      <div class="ob-feat"><span style="font-size:20px">🌍</span><span>Real-time sun position</span></div>
+      <div class="ob-feat"><span style="font-size:20px">⚡</span><span>Live news pulses</span></div>
+      <div class="ob-feat"><span style="font-size:20px">🔍</span><span>Zoom into any region</span></div>
+    </div>
+    <button class="ob-btn" id="ob-next-2">
+      <span>Next</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+  <div class="ob-step" data-step="3">
+    <div class="ob-badge">02</div>
+    <h2 class="ob-h">Pick Your<br/>Interests</h2>
+    <p class="ob-p">ORBIT learns what you love. Select topics and the AI shapes your world.</p>
+    <div class="ob-cg">
+      <button class="ob-cat sel">⚽ Sports</button>
+      <button class="ob-cat sel">💻 Tech</button>
+      <button class="ob-cat">🏛️ Politics</button>
+      <button class="ob-cat sel">🎬 Entertainment</button>
+      <button class="ob-cat">🔬 Science</button>
+      <button class="ob-cat">📈 Finance</button>
+      <button class="ob-cat sel">🎮 Gaming</button>
+      <button class="ob-cat">🎵 Music</button>
+    </div>
+    <button class="ob-btn" id="ob-next-3">
+      <span>Continue</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+  <div class="ob-step" data-step="4">
+    <div class="ob-ri">◎</div>
+    <h2 class="ob-h">Your World<br/>Awaits</h2>
+    <p class="ob-p">Everything happening on Earth, beautifully visualized for you.</p>
+    <button class="ob-btn ob-launch" id="ob-launch">
+      <span>Launch ORBIT</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+  <div class="ob-dots">
+    <span class="ob-dot active"></span>
+    <span class="ob-dot"></span>
+    <span class="ob-dot"></span>
+    <span class="ob-dot"></span>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+  <canvas id="gc"></canvas>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="tb-left">
+      <div class="logo">
+        <span class="logo-i">◎</span>
+        <span class="logo-t">ORBIT</span>
+      </div>
+    </div>
+    <div class="tb-center">
+      <div class="srchw" id="srchw">
+        <svg class="srch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="srch-inp" id="srchi" type="text" placeholder="Search news, topics, countries…" autocomplete="off"/>
+        <div class="srch-res" id="srchr"></div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <button class="tb-btn" id="btn-ai">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span>AI Brief</span>
+      </button>
+      <div style="position:relative">
+        <button class="tb-icon" id="btn-lang" style="min-width:54px;font-size:11px;font-weight:700;gap:4px;font-family:var(--fd)">
+          <span id="lang-flag">🇬🇧</span><span id="lang-label">EN</span>
+        </button>
+        <div id="ldrop" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--glass);border:1px solid var(--gb);backdrop-filter:blur(var(--blur));border-radius:var(--rs);overflow:hidden;min-width:120px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:300;flex-direction:column"></div>
+      </div>
+      <button class="tb-icon" id="btn-profile">
+        <div class="avatar">N</div>
+      </button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="slbl">CATEGORIES</div>
+    <nav class="snav" id="snav">
+      <button class="sitem active" data-cat="all"><span class="sii">🌐</span><span class="sil">All News</span><span class="sic">27</span></button>
+      <button class="sitem" data-cat="sports"><span class="sii">⚽</span><span class="sil">Sports</span><span class="sic">8</span></button>
+      <button class="sitem" data-cat="technology"><span class="sii">💻</span><span class="sil">Technology</span><span class="sic">5</span></button>
+      <button class="sitem" data-cat="politics"><span class="sii">🏛️</span><span class="sil">Politics</span><span class="sic">2</span></button>
+      <button class="sitem" data-cat="entertainment"><span class="sii">🎬</span><span class="sil">Entertainment</span><span class="sic">3</span></button>
+      <button class="sitem" data-cat="science"><span class="sii">🔬</span><span class="sil">Science</span><span class="sic">3</span></button>
+      <button class="sitem" data-cat="finance"><span class="sii">📈</span><span class="sil">Finance</span><span class="sic">2</span></button>
+      <button class="sitem" data-cat="gaming"><span class="sii">🎮</span><span class="sil">Gaming</span><span class="sic">3</span></button>
+      <button class="sitem" data-cat="music"><span class="sii">🎵</span><span class="sil">Music</span><span class="sic">1</span></button>
+      <button class="sitem" data-cat="crypto"><span class="sii">₿</span><span class="sil">Crypto</span><span class="sic">1</span></button>
+    </nav>
+    <div class="sdiv"></div>
+    <div class="slbl">LIVE</div>
+    <div class="slive"><div class="ldot"></div><span>27 stories updating</span></div>
+    <div class="sdiv"></div>
+    <div class="slbl">WORLD TIME</div>
+    <div class="wclock">
+      <div class="crow"><span class="ccity">NYC</span><span class="ctime" id="c-nyc">—</span></div>
+      <div class="crow"><span class="ccity">LON</span><span class="ctime" id="c-lon">—</span></div>
+      <div class="crow"><span class="ccity">TKY</span><span class="ctime" id="c-tky">—</span></div>
+      <div class="crow"><span class="ccity">DXB</span><span class="ctime" id="c-dxb">—</span></div>
+    </div>
+  </aside>
+
+  <!-- NEWS PANEL -->
+  <section class="npanel" id="npanel">
+    <div class="nph">
+      <div class="nploc">
+        <div class="npflag" id="pflag">🌍</div>
+        <div>
+          <div class="npcountry" id="pcountry">World</div>
+          <div class="npsub" id="psub">Global stories</div>
+        </div>
+      </div>
+      <button class="npc-btn" id="pclose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="nptabs">
+      <button class="ntab active" data-tab="top">Top</button>
+      <button class="ntab" data-tab="latest">Latest</button>
+      <button class="ntab" data-tab="trending">Trending</button>
+    </div>
+    <div class="ncc" id="ncc"></div>
+  </section>
+
+  <!-- TRENDING BAR -->
+  <div class="tbar">
+    <div class="tlbl"><div class="ldot sm"></div>TRENDING</div>
+    <div class="tscroll"><div class="tinner" id="tinner"></div></div>
+  </div>
+
+  <!-- GLOBE CONTROLS -->
+  <div class="gctrl">
+    <button class="gcbtn" id="gc-zi" title="Zoom in">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="gcbtn" id="gc-zo" title="Zoom out">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>
+    </button>
+    <button class="gcbtn" id="gc-rs" title="Reset">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    </button>
+    <button class="gcbtn active" id="gc-ar" title="Auto-rotate">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+    </button>
+  </div>
+
+  <!-- TOOLTIP -->
+  <div class="ttpw" id="ttp"><span class="ttf" id="ttf"></span><span class="ttn" id="ttn"></span></div>
+
+  <!-- AI PANEL -->
+  <div class="aipanel hidden" id="aipanel">
+    <div class="aiph">
+      <div class="aipt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        AI Daily Brief
+      </div>
+      <button class="xbtn" id="ai-close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="aipc" id="aipc"></div>
+  </div>
+
+  <!-- PROFILE PANEL -->
+  <div class="ppanel hidden" id="ppanel">
+    <div class="pph">
+      <div class="ppav">N</div>
+      <div><div class="ppname">News Explorer</div><div class="ppplan">ORBIT Free</div></div>
+      <button class="xbtn" id="pp-close" style="margin-left:auto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="ppup">
+      <div class="upbadge">⚡ ORBIT PRO</div>
+      <p>Unlock AI summaries, no ads, and exclusive sources</p>
+      <button class="upbtn">Upgrade — $4.99/mo</button>
+    </div>
+    <div class="ppstats">
+      <div class="stat"><span class="snum">127</span><span class="slbl2">Read</span></div>
+      <div class="stat"><span class="snum">23</span><span class="slbl2">Saved</span></div>
+      <div class="stat"><span class="snum">8</span><span class="slbl2">Countries</span></div>
+    </div>
+  </div>
+
+  <!-- ARTICLE MODAL -->
+  <div class="amodal hidden" id="amodal">
+    <div class="aoverlay" id="aovl"></div>
+    <div class="amcontent">
+      <div class="amh">
+        <button class="abk" id="abk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back
+        </button>
+        <div class="aacts">
+          <button class="aabtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="aabtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+        </div>
+      </div>
+      <div class="abody" id="abody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ORBIT — Main Script (ES Module, imports from CDN)
+══════════════════════════════════════════════════════════════ -->
+<script>
+// THREE and THREE.OrbitControls loaded via UMD scripts in <head>
+
+// ════════════════════════════════════════════════════════
+//  I18N — Inline Language System
+// ════════════════════════════════════════════════════════
+const I18N={
+  en:{ob_title:'The Future of News',ob_desc:'Navigate the world. Discover stories that matter.',ob1_h:'Navigate the Globe',ob1_p:'Spin a live 3D Earth. Tap glowing hotspots to explore.',ob2_h:'Pick Your Interests',ob2_p:'ORBIT\'s AI learns what you love.',ob3_h:'Your World Awaits',ob3_p:'Everything on Earth, beautifully visualized.',ob_explore:'Explore',ob_next:'Next',ob_continue:'Continue',ob_launch:'Launch ORBIT',ob_skip:'Skip intro',search_ph:'Search news, topics…',ai_brief:'AI Brief',lbl_categories:'CATEGORIES',lbl_live:'LIVE',lbl_world_time:'WORLD TIME',cat_all:'All News',cat_sports:'Sports',cat_tech:'Technology',cat_politics:'Politics',cat_entertainment:'Entertainment',cat_science:'Science',cat_finance:'Finance',cat_gaming:'Gaming',cat_music:'Music',cat_crypto:'Crypto',tab_top:'Top',tab_latest:'Latest',tab_trending:'Trending',rising:'Rising',stable:'Stable',no_stories:'No stories found for this region',stories:'stories',read_on:'Read on The Guardian',read_time:'min read',global_stories:'Global stories',back:'Back',ai_summary:'✦ AI SUMMARY',ai_daily:'AI Daily Brief',lbl_trending:'TRENDING',profile_free:'ORBIT Free',profile_read:'Read',profile_saved:'Saved',profile_countries:'Countries',upgrade_text:'Unlock AI summaries, no ads, and exclusive sources',upgrade_btn:'Upgrade — $4.99/mo'},
+  es:{ob_title:'El Futuro de las Noticias',ob_desc:'Navega el mundo. Descubre historias que importan.',ob1_h:'Navega el Globo',ob1_p:'Gira la Tierra 3D en directo. Toca los puntos brillantes para explorar.',ob2_h:'Elige Tus Intereses',ob2_p:'La IA de ORBIT aprende lo que te gusta.',ob3_h:'Tu Mundo Te Espera',ob3_p:'Todo lo que ocurre en la Tierra, visualizado para ti.',ob_explore:'Explorar',ob_next:'Siguiente',ob_continue:'Continuar',ob_launch:'Abrir ORBIT',ob_skip:'Saltar intro',search_ph:'Buscar noticias, temas…',ai_brief:'Resumen IA',lbl_categories:'CATEGORÍAS',lbl_live:'EN VIVO',lbl_world_time:'HORA MUNDIAL',cat_all:'Todas',cat_sports:'Deportes',cat_tech:'Tecnología',cat_politics:'Política',cat_entertainment:'Entretenimiento',cat_science:'Ciencia',cat_finance:'Finanzas',cat_gaming:'Gaming',cat_music:'Música',cat_crypto:'Cripto',tab_top:'Principal',tab_latest:'Recientes',tab_trending:'Tendencias',rising:'Subiendo',stable:'Estable',no_stories:'No hay noticias para esta región',stories:'noticias',read_on:'Leer en The Guardian',read_time:'min lectura',global_stories:'Noticias globales',back:'Volver',ai_summary:'✦ RESUMEN IA',ai_daily:'Resumen Diario IA',lbl_trending:'TENDENCIAS',profile_free:'ORBIT Gratis',profile_read:'Leídas',profile_saved:'Guardadas',profile_countries:'Países',upgrade_text:'Desbloquea resúmenes IA, sin anuncios y fuentes exclusivas',upgrade_btn:'Actualizar — 4,99€/mes'},
+  fr:{ob_title:'Le Futur de l\'Actualité',ob_desc:'Naviguez dans le monde. Découvrez les histoires qui comptent.',ob1_h:'Naviguez le Globe',ob1_p:'Tournez une Terre 3D en direct. Touchez les points lumineux pour explorer.',ob2_h:'Choisissez Vos Intérêts',ob2_p:'L\'IA d\'ORBIT apprend ce que vous aimez.',ob3_h:'Votre Monde Vous Attend',ob3_p:'Tout ce qui se passe sur Terre, visualisé pour vous.',ob_explore:'Explorer',ob_next:'Suivant',ob_continue:'Continuer',ob_launch:'Lancer ORBIT',ob_skip:'Passer l\'intro',search_ph:'Rechercher des actualités…',ai_brief:'Résumé IA',lbl_categories:'CATÉGORIES',lbl_live:'EN DIRECT',lbl_world_time:'HEURE MONDIALE',cat_all:'Toutes',cat_sports:'Sports',cat_tech:'Technologie',cat_politics:'Politique',cat_entertainment:'Divertissement',cat_science:'Science',cat_finance:'Finance',cat_gaming:'Gaming',cat_music:'Musique',cat_crypto:'Crypto',tab_top:'À la une',tab_latest:'Récentes',tab_trending:'Tendances',rising:'En hausse',stable:'Stable',no_stories:'Aucune histoire pour cette région',stories:'articles',read_on:'Lire sur The Guardian',read_time:'min de lecture',global_stories:'Actualités mondiales',back:'Retour',ai_summary:'✦ RÉSUMÉ IA',ai_daily:'Résumé Quotidien IA',lbl_trending:'TENDANCES',profile_free:'ORBIT Gratuit',profile_read:'Lus',profile_saved:'Sauvegardés',profile_countries:'Pays',upgrade_text:'Débloquez les résumés IA, sans pub et sources exclusives',upgrade_btn:'S\'abonner — 4,99€/mois'},
+  de:{ob_title:'Die Zukunft der Nachrichten',ob_desc:'Navigiere die Welt. Entdecke Geschichten, die wichtig sind.',ob1_h:'Navigiere den Globus',ob1_p:'Drehe eine Live-3D-Erde. Tippe auf Punkte zum Erkunden.',ob2_h:'Wähle Deine Interessen',ob2_p:'ORBITs KI lernt, was du liebst.',ob3_h:'Deine Welt Wartet',ob3_p:'Alles auf der Erde, wunderschön für dich visualisiert.',ob_explore:'Erkunden',ob_next:'Weiter',ob_continue:'Fortfahren',ob_launch:'ORBIT Starten',ob_skip:'Intro überspringen',search_ph:'Nachrichten suchen…',ai_brief:'KI-Zusammenfassung',lbl_categories:'KATEGORIEN',lbl_live:'LIVE',lbl_world_time:'WELTZEIT',cat_all:'Alle',cat_sports:'Sport',cat_tech:'Technologie',cat_politics:'Politik',cat_entertainment:'Unterhaltung',cat_science:'Wissenschaft',cat_finance:'Finanzen',cat_gaming:'Gaming',cat_music:'Musik',cat_crypto:'Krypto',tab_top:'Top',tab_latest:'Aktuell',tab_trending:'Trending',rising:'Steigend',stable:'Stabil',no_stories:'Keine Nachrichten für diese Region',stories:'Meldungen',read_on:'Auf The Guardian lesen',read_time:'Min. Lesezeit',global_stories:'Weltweite Nachrichten',back:'Zurück',ai_summary:'✦ KI-ZUSAMMENFASSUNG',ai_daily:'KI-Tagesbericht',lbl_trending:'TRENDING',profile_free:'ORBIT Kostenlos',profile_read:'Gelesen',profile_saved:'Gespeichert',profile_countries:'Länder',upgrade_text:'KI-Zusammenfassungen, keine Werbung und exklusive Quellen',upgrade_btn:'Upgrade — 4,99€/Monat'},
+};
+const LANGS={en:{flag:'🇬🇧',label:'EN'},es:{flag:'🇪🇸',label:'ES'},fr:{flag:'🇫🇷',label:'FR'},de:{flag:'🇩🇪',label:'DE'}};
+// Extend brief translations
+Object.assign(I18N.en,{brief_global:'WORLD NEWS',brief_sports:'SPORTS',brief_tech:'TECHNOLOGY',brief_gaming:'GAMING',brief_science:'SCIENCE',brief_entertainment:'ENTERTAINMENT',brief_finance:'FINANCE',brief_no_news:'No live news available.',brief_powered:'Generated from live Guardian news'});
+Object.assign(I18N.es,{brief_global:'NOTICIAS MUNDIALES',brief_sports:'DEPORTES',brief_tech:'TECNOLOGÍA',brief_gaming:'GAMING',brief_science:'CIENCIA',brief_entertainment:'ENTRETENIMIENTO',brief_finance:'FINANZAS',brief_no_news:'Sin noticias disponibles.',brief_powered:'Generado desde noticias en vivo del Guardian'});
+Object.assign(I18N.fr,{brief_global:'ACTUALITÉS MONDIALES',brief_sports:'SPORTS',brief_tech:'TECHNOLOGIE',brief_gaming:'GAMING',brief_science:'SCIENCE',brief_entertainment:'DIVERTISSEMENT',brief_finance:'FINANCE',brief_no_news:'Aucune actualité disponible.',brief_powered:'Généré depuis les actualités Guardian en direct'});
+Object.assign(I18N.de,{brief_global:'WELTNACHRICHTEN',brief_sports:'SPORT',brief_tech:'TECHNOLOGIE',brief_gaming:'GAMING',brief_science:'WISSENSCHAFT',brief_entertainment:'UNTERHALTUNG',brief_finance:'FINANZEN',brief_no_news:'Keine Nachrichten verfügbar.',brief_powered:'Generiert aus Guardian-Nachrichten in Echtzeit'});
+
+let _lang=(()=>{const s=localStorage.getItem('orbit_lang');if(s&&I18N[s])return s;const b=(navigator.language||'en').slice(0,2).toLowerCase();return I18N[b]?b:'en';})();
+function tr(k){return (I18N[_lang]||I18N.en)[k]||(I18N.en)[k]||k;}
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(el=>{const v=tr(el.dataset.i18n);if(v)el.textContent=v;});document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=tr(el.dataset.i18nPh);if(v)el.placeholder=v;});}
+function setLang(l){
+  if(!I18N[l])return;_lang=l;localStorage.setItem('orbit_lang',l);applyI18n();
+  document.getElementById('lang-flag').textContent=LANGS[l].flag;
+  document.getElementById('lang-label').textContent=LANGS[l].label;
+  document.querySelectorAll('.lo').forEach(o=>o.classList.toggle('lo-active',o.dataset.l===l));
+  // Reload news with new language's RSS feeds
+  if(window._orbitGlobe){
+    fetchGuardianNews().then(r=>{if(r.length)spawnHotspots(window._orbitGlobe,r);}).catch(()=>{});
+  }
+}
+function initLangSelector(){
+  const btn=document.getElementById('btn-lang'),dd=document.getElementById('ldrop');if(!btn||!dd)return;
+  dd.innerHTML=Object.entries(LANGS).map(([c,i])=>`<button class="lo${_lang===c?' lo-active':''}" data-l="${c}" onclick="setLang('${c}');document.getElementById('ldrop').classList.remove('ldrop-vis')">${i.flag} ${i.label}</button>`).join('');
+  btn.addEventListener('click',e=>{e.stopPropagation();dd.classList.toggle('ldrop-vis');});
+  document.addEventListener('click',()=>dd.classList.remove('ldrop-vis'));
+}
+
+// ════════════════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════════════════
+const CATS = {
+  all:           {l:'All News',      c:'#00D4FF',bg:'rgba(0,212,255,.1)',   i:'🌐'},
+  sports:        {l:'Sports',        c:'#00D4FF',bg:'rgba(0,212,255,.1)',   i:'⚽'},
+  technology:    {l:'Technology',    c:'#A78BFA',bg:'rgba(167,139,250,.1)', i:'💻'},
+  politics:      {l:'Politics',      c:'#FB923C',bg:'rgba(251,146,60,.1)',  i:'🏛️'},
+  entertainment: {l:'Entertainment', c:'#FBBF24',bg:'rgba(251,191,36,.1)',  i:'🎬'},
+  science:       {l:'Science',       c:'#34D399',bg:'rgba(52,211,153,.1)',  i:'🔬'},
+  finance:       {l:'Finance',       c:'#F87171',bg:'rgba(248,113,113,.1)', i:'📈'},
+  gaming:        {l:'Gaming',        c:'#A3E635',bg:'rgba(163,230,53,.1)',  i:'🎮'},
+  music:         {l:'Music',         c:'#818CF8',bg:'rgba(129,140,248,.1)', i:'🎵'},
+  crypto:        {l:'Crypto',        c:'#F59E0B',bg:'rgba(245,158,11,.1)',  i:'₿'},
+};
+const FLAGS={UK:'🇬🇧',US:'🇺🇸',ES:'🇪🇸',FR:'🇫🇷',DE:'🇩🇪',JP:'🇯🇵',CN:'🇨🇳',BR:'🇧🇷',IN:'🇮🇳',AU:'🇦🇺',KR:'🇰🇷',RU:'🇷🇺',CA:'🇨🇦',IT:'🇮🇹',NL:'🇳🇱',AE:'🇦🇪',NG:'🇳🇬'};
+const CNAMES={UK:'United Kingdom',US:'United States',ES:'Spain',FR:'France',DE:'Germany',JP:'Japan',BR:'Brazil',IN:'India',AU:'Australia',KR:'South Korea',IT:'Italy',NL:'Netherlands',AE:'UAE',NG:'Nigeria'};
+
+const NOW=Date.now();
+const NEWS=[
+  {id:'n1',title:'Manchester City clinches Premier League in last-gasp Haaland goal',summary:'Haaland scored a 94th-minute winner at the Etihad to seal a historic fifth consecutive title for Pep Guardiola\'s side.',content:`<p>In one of the most dramatic Premier League finales ever, <strong>Manchester City secured their fifth consecutive title</strong> through an extraordinary goal from Erling Haaland in stoppage time.</p><p>The Norwegian striker converted a De Bruyne cross to spark mass celebrations across Manchester. Guardiola called it "the greatest moment of my career in England."</p><p>Arsenal, who led the table for most of the season, finished two points behind after their own victory wasn't enough to deny their rivals.</p>`,category:'sports',country:'UK',lat:53.48,lng:-2.24,intensity:.98,h:.5,source:'BBC Sport',tags:['premier-league','football','manchester-city','haaland'],readTime:'3 min',trend:'rising'},
+  {id:'n2',title:'Real Madrid defeat Barcelona 4-0 in historic El Clásico',summary:'Mbappé scored a hat-trick as Real Madrid dismantled Barcelona at Camp Nou in the biggest El Clásico defeat in a generation.',content:`<p>Kylian Mbappé announced himself to Spanish football in spectacular fashion, <strong>netting a hat-trick</strong> as Real Madrid humiliated Barcelona 4-0 at Camp Nou.</p><p>The result — Barcelona's heaviest home defeat in this fixture for 21 years — leaves Real Madrid 11 points clear at the La Liga summit.</p><p>Mbappé's performance drew comparisons to the all-time greats. The Frenchman was simply untouchable.</p>`,category:'sports',country:'ES',lat:41.38,lng:2.12,intensity:.95,h:2,source:'Marca',tags:['la-liga','real-madrid','barcelona','el-clasico','mbappe'],readTime:'4 min',trend:'rising'},
+  {id:'n3',title:'NBA Finals: Boston Celtics win back-to-back championships',summary:'Jayson Tatum led the Celtics to a dominant Game 7 victory over the Oklahoma City Thunder, cementing Boston\'s place in NBA history.',content:`<p>The <strong>Boston Celtics are back-to-back NBA Champions</strong>, defeating Oklahoma City Thunder in a pulsating Game 7. Jayson Tatum finished with 38 points, 12 rebounds and 8 assists in a legendary performance.</p><p>The victory is the 18th championship in Celtics history, pulling them clear of the LA Lakers as the most successful franchise in NBA history.</p>`,category:'sports',country:'US',lat:42.37,lng:-71.06,intensity:.96,h:1,source:'ESPN',tags:['nba','boston-celtics','tatum','basketball'],readTime:'3 min',trend:'rising'},
+  {id:'n4',title:'PSG win Ligue 1 despite Dembélé injury scare',summary:'Paris Saint-Germain secured the French title but faces growing concern over Ousmane Dembélé who limped off after 23 minutes.',content:`<p>PSG wrapped up another Ligue 1 title but celebrations were muted by concern over <strong>Ousmane Dembélé</strong>, forced off after 23 minutes with a suspected hamstring injury.</p><p>The winger, PSG's best player this season, will undergo scans Monday. The club awaits the prognosis anxiously.</p>`,category:'sports',country:'FR',lat:48.86,lng:2.35,intensity:.72,h:3,source:"L'Équipe",tags:['ligue-1','psg','dembele','football'],readTime:'2 min',trend:'stable'},
+  {id:'n5',title:'Formula 1: Verstappen wins Monaco Grand Prix in lights-to-flag masterclass',summary:'The four-time world champion was untouchable around Monaco, extending his championship lead to 84 points.',content:`<p>Max Verstappen produced a <strong>flawless performance</strong> at Monaco, managing his tyres expertly through three safety car periods to take the victory.</p><p>The win extends his championship lead to 84 points with just six races remaining this season.</p>`,category:'sports',country:'ES',lat:43.74,lng:7.42,intensity:.88,h:4,source:'Sky Sports F1',tags:['formula-1','verstappen','monaco','f1'],readTime:'3 min',trend:'stable'},
+  {id:'n6',title:'OpenAI unveils GPT-5 with near-human reasoning across all domains',summary:'The latest model achieves expert-level performance in medicine, law, and coding — raising urgent questions about AI\'s impact on work.',content:`<p>OpenAI has launched <strong>GPT-5</strong>, its most capable model to date, benchmarking near-human performance in medicine, law, mathematics, and software engineering.</p><p>CEO Sam Altman called it "the beginning of the AGI era." Early testers report the model passing the US Medical Licensing Exam with a score of 94%.</p><p>The launch has reignited global debate about AI safety, with researchers calling for an international governance framework.</p>`,category:'technology',country:'US',lat:37.77,lng:-122.42,intensity:.99,h:.25,source:'The Verge',tags:['ai','openai','gpt-5','artificial-intelligence'],readTime:'5 min',trend:'rising'},
+  {id:'n7',title:'Apple Vision Pro 2 leaks: spatial computing goes mainstream',summary:'Leaked specs show Apple\'s next AR headset will be half the weight, twice the resolution, and $2,000.',content:`<p>Leaked supply chain documents suggest Apple is preparing <strong>Vision Pro 2</strong> with dramatically improved specs and a $2,000 price point to bring spatial computing to mass market.</p><p>The headset reportedly weighs just 280g — half the original — and features displays with double the pixel density.</p>`,category:'technology',country:'US',lat:37.33,lng:-122.01,intensity:.92,h:1.5,source:'MacRumors',tags:['apple','vision-pro','ar','spatial-computing'],readTime:'4 min',trend:'rising'},
+  {id:'n8',title:'Samsung Galaxy S26 Ultra sets new smartphone camera record',summary:'DxOMark scores show the flagship achieving 168 points — the highest ever recorded for any smartphone.',content:`<p><strong>Samsung's Galaxy S26 Ultra</strong> has smashed the DxOMark camera ranking with a record score of 168 — the highest ever recorded.</p><p>The breakthrough uses a 200MP sensor developed with Sony, combined with a redesigned AI processing pipeline running entirely on-device.</p>`,category:'technology',country:'KR',lat:37.57,lng:126.98,intensity:.80,h:3,source:'GSMArena',tags:['samsung','galaxy','smartphone','camera','android'],readTime:'3 min',trend:'stable'},
+  {id:'n9',title:'Nvidia surpasses $4 trillion market cap — largest company ever',summary:'Driven by insatiable AI chip demand, Nvidia is the first company in history to reach a $4 trillion valuation.',content:`<p><strong>Nvidia has become the first company in history to reach $4 trillion market capitalisation</strong>, driven by limitless demand for its H100 and B200 AI chips.</p><p>CEO Jensen Huang called the milestone "a reflection of the world's computing transformation." Shares have risen over 2,000% in three years.</p>`,category:'technology',country:'US',lat:37.37,lng:-121.99,intensity:.94,h:2,source:'Bloomberg',tags:['nvidia','ai','stock-market','technology'],readTime:'3 min',trend:'rising'},
+  {id:'n10',title:'EU announces new AI governance framework',summary:'Brussels unveils historic legislation requiring transparency and human oversight for all AI systems deployed in Europe.',content:`<p>The European Union has unveiled its <strong>Digital Sovereignty Framework</strong>, the most comprehensive AI regulation by any major jurisdiction.</p><p>The legislation requires AI systems above a capability threshold to undergo mandatory safety assessments before European deployment. Fines up to 6% of global revenue for violations.</p>`,category:'politics',country:'DE',lat:50.85,lng:4.35,intensity:.78,h:5,source:'Politico',tags:['eu','ai-regulation','europe','politics'],readTime:'4 min',trend:'stable'},
+  {id:'n11',title:'G7 summit ends with landmark $1.5 trillion climate deal',summary:'Leaders of the world\'s seven largest economies commit record financing for emerging market green transitions.',content:`<p>The G7 summit in Rome concluded with a <strong>$1.5 trillion climate agreement</strong> pledging financing to support green energy transitions in emerging economies — the largest single climate finance commitment in history.</p>`,category:'politics',country:'IT',lat:41.90,lng:12.50,intensity:.82,h:4,source:'Reuters',tags:['g7','climate','politics','environment'],readTime:'4 min',trend:'stable'},
+  {id:'n12',title:'GTA VI breaks every record: 10M concurrent players on launch day',summary:'Rockstar\'s long-awaited sequel shattered Steam\'s all-time concurrent player record within six hours.',content:`<p><strong>Grand Theft Auto VI</strong> launched to extraordinary demand, recording 10.2 million concurrent players on Steam alone within six hours — nearly double the previous all-time record.</p><p>Set in a reimagined Vice City with Lucia as the first female GTA lead, early reviews call it "the most technically ambitious game ever made."</p>`,category:'gaming',country:'US',lat:25.76,lng:-80.19,intensity:.99,h:.5,source:'IGN',tags:['gta-6','rockstar','gaming','pc','ps5'],readTime:'5 min',trend:'rising'},
+  {id:'n13',title:'Nintendo Switch 2 sells 5 million units in first weekend',summary:'Nintendo\'s latest console shattered launch records across all territories with Zelda: Echoes of Wisdom the fastest-selling game ever.',content:`<p>The <strong>Nintendo Switch 2</strong> sold 5 million units in its opening weekend — more than any previous Nintendo console in history.</p><p>Launch title Zelda: Echoes of Wisdom sold 4.1 million copies in the same period, making it the fastest-selling Nintendo game ever.</p>`,category:'gaming',country:'JP',lat:35.68,lng:139.65,intensity:.93,h:1,source:'Nintendo Life',tags:['nintendo','switch-2','zelda','gaming','console'],readTime:'3 min',trend:'rising'},
+  {id:'n14',title:'LoL Worlds 2025 draws 73M concurrent viewers — esports history made',summary:'The South Korea-hosted championship broke every viewership record as T1 and Gen.G met in an epic Korean final.',content:`<p>The League of Legends World Championship returned to South Korea and delivered <strong>73 million concurrent viewers</strong> — shattering every previous esports viewership record.</p><p>T1's victory, led by the legendary Faker, was described as the greatest series ever played at Worlds.</p>`,category:'gaming',country:'KR',lat:37.57,lng:126.98,intensity:.87,h:6,source:'Dot Esports',tags:['league-of-legends','esports','worlds','t1','faker'],readTime:'4 min',trend:'stable'},
+  {id:'n15',title:'Taylor Swift announces "The Eras Tour — Chapter 2" world tour',summary:'80 shows across 6 continents. The most anticipated concert announcement of the decade.',content:`<p><strong>Taylor Swift</strong> announced "The Eras Tour — Chapter 2," visiting every continent including first-ever South American and African dates. The 80-show tour is expected to gross over $3 billion — the highest-grossing tour in history.</p>`,category:'entertainment',country:'US',lat:36.16,lng:-86.78,intensity:.96,h:1,source:'Variety',tags:['taylor-swift','music','tour','concert','pop'],readTime:'3 min',trend:'rising'},
+  {id:'n16',title:'BTS Jin tops global Spotify charts with record comeback single',summary:'Jin\'s return single debuted #1 in 147 countries, setting a new first-day streaming record.',content:`<p><strong>Jin of BTS</strong> made one of music's most remarkable returns, with his comeback single debuting #1 in 147 countries and setting a new Spotify first-day streaming record after completing military service.</p>`,category:'entertainment',country:'KR',lat:37.57,lng:126.98,intensity:.88,h:2,source:'Billboard',tags:['bts','jin','kpop','music','spotify'],readTime:'2 min',trend:'rising'},
+  {id:'n17',title:'Stranger Things Season 6 breaks Netflix record with 142M households',summary:'The final season of Netflix\'s flagship show is the most-watched series in Netflix history in its first week.',content:`<p>Netflix confirmed <strong>Stranger Things Season 6</strong> drew 142 million households globally in its first week — the most-watched series in Netflix history. The final season has been praised as a masterful conclusion to a defining show of the 2020s.</p>`,category:'entertainment',country:'US',lat:33.81,lng:-84.35,intensity:.84,h:3,source:'Hollywood Reporter',tags:['stranger-things','netflix','tv','streaming'],readTime:'3 min',trend:'stable'},
+  {id:'n18',title:'NASA confirms first signs of ancient life on Mars',summary:'The Perseverance rover has returned rock samples showing chemical signatures consistent with ancient biological processes.',content:`<p>In what could be the most significant scientific discovery in human history, <strong>NASA has announced evidence consistent with ancient microbial life on Mars</strong>.</p><p>Rock samples from Perseverance show organic molecules and chemical signatures that scientists say are "most parsimoniously explained" by biological processes 3.5 billion years ago — when Mars was warmer and wetter.</p><p>Published in Nature and peer-reviewed by over 200 scientists. Not definitive proof, but extraordinary evidence.</p>`,category:'science',country:'US',lat:29.56,lng:-95.09,intensity:.99,h:.25,source:'NASA',tags:['mars','nasa','space','life','astrobiology','perseverance'],readTime:'6 min',trend:'rising'},
+  {id:'n19',title:'European quantum computer achieves stable 1,000-qubit milestone',summary:'A consortium of EU universities demonstrated a stable 1,000-qubit processor — a key step toward quantum advantage.',content:`<p>A <strong>European quantum computing consortium</strong> successfully demonstrated a stable 1,000-qubit quantum processor — a prerequisite milestone for practical quantum advantage over classical computers.</p><p>Achieved by researchers at Delft, ETH Zurich, and Fraunhofer Institute using a novel error-correction technique.</p>`,category:'science',country:'NL',lat:52.01,lng:4.36,intensity:.85,h:5,source:'Nature',tags:['quantum-computing','science','europe','technology'],readTime:'5 min',trend:'stable'},
+  {id:'n20',title:'Bitcoin surpasses $200,000 for the first time in history',summary:'The world\'s largest cryptocurrency crossed $200K as institutional adoption reaches new heights.',content:`<p><strong>Bitcoin crossed $200,000</strong> for the first time, reaching $201,450 in Asian markets before consolidating around $196,000.</p><p>Driven by: growing institutional ETF adoption, Fed rate cut signals, and a weakening dollar. Ethereum simultaneously crossed $15,000.</p>`,category:'crypto',country:'US',lat:40.71,lng:-74.01,intensity:.94,h:1,source:'CoinDesk',tags:['bitcoin','crypto','finance','btc','cryptocurrency'],readTime:'3 min',trend:'rising'},
+  {id:'n21',title:'UAE\'s ADNOC announces world\'s largest solar-to-hydrogen project',summary:'The $12bn facility in Abu Dhabi will produce enough green hydrogen to power 500,000 homes by 2028.',content:`<p>ADNOC announced a <strong>$12 billion green hydrogen megaproject</strong> — the largest such investment in history — to be built in Al Dhafra, positioning UAE as a global clean energy exporter.</p>`,category:'finance',country:'AE',lat:24.45,lng:54.38,intensity:.77,h:6,source:'Financial Times',tags:['uae','hydrogen','energy','green','finance'],readTime:'4 min',trend:'stable'},
+  {id:'n22',title:'India\'s stock market surpasses $5 trillion — overtakes UK',summary:'BSE Sensex hits record highs as India\'s tech and manufacturing boom drives unprecedented wealth creation.',content:`<p>India's <strong>Bombay Stock Exchange surpassed $5 trillion in total market cap</strong>, overtaking the UK to become the world's fourth-largest stock market.</p><p>The milestone reflects India's extraordinary growth: booming tech sector, young demographic, and foreign investment in manufacturing diversifying from China.</p>`,category:'finance',country:'IN',lat:19.08,lng:72.88,intensity:.82,h:4,source:'Bloomberg',tags:['india','stock-market','finance','economy'],readTime:'3 min',trend:'rising'},
+  {id:'n23',title:'SpaceX Starship completes first crewed mission to lunar orbit',summary:'Four astronauts successfully orbited the Moon and returned safely — humanity\'s first lunar mission since Apollo 17 in 1972.',content:`<p>SpaceX's <strong>Starship completed the most ambitious crewed spaceflight since Apollo</strong>, carrying four astronauts on a 10-day lunar orbit mission before returning safely to Earth. A precursor to NASA's Artemis lunar landing program.</p>`,category:'science',country:'US',lat:28.56,lng:-80.58,intensity:.97,h:2,source:'Space.com',tags:['spacex','starship','nasa','moon','space','artemis'],readTime:'5 min',trend:'rising'},
+  {id:'n24',title:'Brazil wins Copa América 2025 in penalty shootout thriller',summary:'Brazil defeated Argentina on penalties in Miami after a 0-0 draw, ending the Albiceleste\'s 3-year unbeaten run.',content:`<p><strong>Brazil are Copa América champions</strong>, defeating Argentina on penalties at Hard Rock Stadium after a 0-0 draw. Goalkeeper Alisson saved two penalties as Vinicius Júnior converted the winner.</p>`,category:'sports',country:'BR',lat:-15.78,lng:-47.93,intensity:.91,h:3,source:'ESPN Brasil',tags:['copa-america','brazil','argentina','football'],readTime:'3 min',trend:'rising'},
+  {id:'n25',title:'Burna Boy wins Grammy Record of the Year — first African artist ever',summary:'Nigeria\'s biggest star made history at the 67th Grammy Awards, becoming the first African artist to win the top honour.',content:`<p><strong>Burna Boy made history</strong> at the 67th Grammy Awards, becoming the first African artist to win Record of the Year for "Colours of Africa" — a collaboration featuring Beyoncé, Wizkid, and Amaarae.</p><p>The win marks a watershed moment for African music's global ascent, with Afrobeats now the fastest-growing genre on streaming platforms worldwide.</p>`,category:'music',country:'NG',lat:9.08,lng:8.68,intensity:.89,h:2,source:'Pitchfork',tags:['burna-boy','grammys','afrobeats','music','nigeria'],readTime:'4 min',trend:'rising'},
+  {id:'n26',title:'Australia commits AU$200bn to become 100% renewable by 2035',summary:'Canberra commits the largest per-capita climate investment by any nation in history.',content:`<p>Australia announced a <strong>AU$200 billion investment</strong> in renewable energy — the largest per-capita climate investment in history. Including 50GW of new solar capacity and a continent-spanning grid overhaul.</p>`,category:'science',country:'AU',lat:-35.28,lng:149.13,intensity:.80,h:7,source:'ABC Australia',tags:['australia','renewable-energy','climate','solar'],readTime:'4 min',trend:'stable'},
+  {id:'n27',title:'Japan\'s humanoid robot workforce reaches 1 million units',summary:'Toyota and Honda-led consortiums have deployed over a million humanoid robots in Japanese factories.',content:`<p>Japan passed a remarkable milestone: <strong>over one million humanoid robots</strong> now operate in industrial settings — the beginning of the "Physical AI" era. Toyota's T-HR5 and Honda's models can now learn from human demonstration in minutes.</p>`,category:'technology',country:'JP',lat:35.68,lng:139.65,intensity:.85,h:5,source:'Nikkei Asia',tags:['japan','robotics','ai','manufacturing'],readTime:'4 min',trend:'stable'},
+];
+
+NOW && NEWS.forEach(n=>{
+  n.timestamp=NOW-(n.h*3600000);
+  n.timeAgo=n.h<1?`${Math.round(n.h*60)}m ago`:n.h<24?`${Math.round(n.h)}h ago`:`${Math.round(n.h/24)}d ago`;
+});
+
+const TRENDING=[
+  {l:'GPT-5',c:'2.1M posts'},{l:'GTA VI Launch',c:'1.8M posts'},{l:'#Haaland',c:'890K posts'},
+  {l:'Bitcoin $200K',c:'756K posts'},{l:'NASA Mars Life',c:'1.2M posts'},{l:'#ElClasico',c:'620K posts'},
+  {l:'Switch 2',c:'540K posts'},{l:'Burna Boy Grammy',c:'430K posts'},{l:'SpaceX Moon',c:'780K posts'},{l:'#TaylorSwift',c:'1.5M posts'},
+];
+
+const AI_BRIEF=[
+  {r:'🌍 GLOBAL',t:`Today's biggest story is <strong>NASA's announcement of potential ancient life on Mars</strong>, sending shockwaves through the scientific community. Meanwhile, <strong>OpenAI's GPT-5 launch</strong> has tech leaders debating the implications for every profession.`},
+  {r:'⚽ SPORTS',t:`<strong>Manchester City are Premier League champions again</strong>, with Haaland's 94th-minute winner completing a stunning comeback. In the Americas, <strong>Brazil won Copa América</strong> on penalties vs Argentina.`},
+  {r:'💻 TECH',t:`<strong>Nvidia crossed $4 trillion</strong> in market cap — the first company in history to do so. Samsung's Galaxy S26 Ultra set a new camera record with DxOMark's highest-ever score of 168.`},
+  {r:'🎮 GAMING',t:`<strong>GTA VI shattered Steam records</strong> with 10M concurrent players in its first six hours. Nintendo Switch 2 sold 5M units in its opening weekend.`},
+];
+
+// ════════════════════════════════════════════════════════
+//  SHADERS
+// ════════════════════════════════════════════════════════
+const VERT_EARTH=`
+varying vec2 vUv;varying vec3 vN;varying vec3 vWP;
+void main(){vUv=uv;vN=normalize(mat3(modelMatrix)*normal);vWP=(modelMatrix*vec4(position,1.0)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}
+`;
+const FRAG_EARTH=`
+uniform sampler2D uDay;uniform sampler2D uNight;uniform sampler2D uSpec;uniform vec3 uSun;
+varying vec2 vUv;varying vec3 vN;varying vec3 vWP;
+void main(){
+  vec3 N=normalize(vN);vec3 V=normalize(cameraPosition-vWP);vec3 L=normalize(uSun);
+  float NdL=dot(N,L);
+  float df=smoothstep(-0.04,0.18,NdL);
+  vec3 dc=texture2D(uDay,vUv).rgb;
+  float lm=dot(dc,vec3(.299,.587,.114));dc=mix(vec3(lm),dc,1.22);dc=pow(dc,vec3(.88));dc*=1.08;
+  vec3 nc=texture2D(uNight,vUv).rgb;nc=nc*vec3(1.45,1.05,.45);nc=pow(max(nc,vec3(0.)),vec3(.52));nc*=3.0;
+  vec3 col=mix(nc,dc,df);
+  float sm=texture2D(uSpec,vUv).r;
+  vec3 H=normalize(L+V);float NdH=max(dot(N,H),0.);
+  float s1=pow(NdH,350.);float s2=pow(NdH,55.);
+  vec3 sC=mix(vec3(.65,.82,1.),vec3(1.,.97,.93),s1/(s1+.06));
+  col+=sC*(s1*2.2+s2*.22)*sm*df;
+  float rim=1.-max(dot(N,V),0.);rim=pow(rim,2.1);
+  float rdF=smoothstep(-.25,.55,NdL);
+  vec3 rc=mix(vec3(.02,.04,.18),vec3(.35,.65,1.),rdF);
+  float sL=pow(max(1.-abs(NdL),0.),4.5)*rdF;rc=mix(rc,vec3(.92,.48,.12),sL*.4);
+  col+=rc*rim*.55;
+  float ld=pow(max(dot(N,V),0.),.35);col*=.82+.18*ld;
+  gl_FragColor=vec4(col,1.);
+}
+`;
+const VERT_ATMO=`
+varying vec3 vN;varying vec3 vWP;
+void main(){vN=normalize(mat3(modelMatrix)*normal);vWP=(modelMatrix*vec4(position,1.0)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}
+`;
+const FRAG_ATMO=`
+uniform vec3 uSun;varying vec3 vN;varying vec3 vWP;
+void main(){
+  vec3 N=normalize(vN);vec3 V=normalize(cameraPosition-vWP);vec3 L=normalize(uSun);
+  float rim=1.-max(dot(N,V),0.);rim=pow(rim,1.25);
+  float NdL=dot(N,L);float dF=smoothstep(-.2,.6,NdL);
+  vec3 ac=mix(vec3(.01,.02,.10)*.35,vec3(.28,.58,1.),dF);
+  float sG=pow(max(1.-abs(NdL),0.),5.5)*dF;ac=mix(ac,vec3(1.,.42,.08),sG*.55);
+  float dayR=rim*smoothstep(-.1,.4,NdL);
+  float a=clamp(ac.b*.4*rim+dayR*.38,.0,.88);
+  gl_FragColor=vec4(ac,a);
+}
+`;
+const VERT_HS=`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
+const FRAG_HS=`
+uniform vec3 uCol;uniform float uT;uniform float uOp;
+varying vec2 vUv;
+void main(){
+  vec2 ctr=vec2(.5);float d=distance(vUv,ctr);
+  if(d>.5)discard;
+  float core=exp(-d*28.)*1.15;
+  float p1=mod(uT*.55,1.);float r1=exp(-pow((d-p1*.44)*34.,2.))*(1.-p1)*.9;
+  float p2=mod(uT*.55+.5,1.);float r2=exp(-pow((d-p2*.44)*34.,2.))*(1.-p2)*.55;
+  float a=(core+r1+r2)*uOp;
+  gl_FragColor=vec4(uCol,clamp(a,0.,.94));
+}
+`;
+// (Aurora removed)
+
+// ════════════════════════════════════════════════════════
+//  SUN POSITION
+// ════════════════════════════════════════════════════════
+function getSunDir(){
+  const now=new Date();
+  const h=now.getUTCHours()+now.getUTCMinutes()/60+now.getUTCSeconds()/3600;
+  const doy=Math.floor((now-new Date(Date.UTC(now.getUTCFullYear(),0,0)))/864e5);
+  const decl=-23.45*Math.cos(2*Math.PI/365*(doy+10))*Math.PI/180;
+  const lon=(12-h)*15*Math.PI/180;
+  return new THREE.Vector3(Math.cos(decl)*Math.cos(lon),Math.sin(decl),Math.cos(decl)*(-Math.sin(lon))).normalize();
+}
+function ll3(lat,lng,r=1){
+  const la=lat*Math.PI/180,lo=lng*Math.PI/180;
+  return new THREE.Vector3(r*Math.cos(la)*Math.cos(lo),r*Math.sin(la),r*Math.cos(la)*(-Math.sin(lo)));
+}
+
+// ════════════════════════════════════════════════════════
+//  GLOBE CLASS
+// ════════════════════════════════════════════════════════
+class Globe{
+  constructor(canvas){
+    this.canvas=canvas;this._t=0;this.hotspots=[];
+    this.cb={onReady:null,onHotspotClick:null,onHotspotHover:null,onHotspotLeave:null,onBackgroundClick:null,onProgress:null};
+    this.raycaster=new THREE.Raycaster();this.mouse=new THREE.Vector2(-99,-99);
+    this._hovered=null;this._sunDir=getSunDir();
+    this._init();
+  }
+  _init(){
+    // Scene
+    this.scene=new THREE.Scene();
+    // Camera
+    this.cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);
+    this.cam.position.set(0,.3,7);
+    // Renderer
+    this.ren=new THREE.WebGLRenderer({canvas:this.canvas,antialias:true,alpha:true});
+    this.ren.setPixelRatio(Math.min(devicePixelRatio,2));
+    this.ren.setSize(innerWidth,innerHeight);
+    this.ren.outputEncoding=THREE.sRGBEncoding||3001;
+    this.ren.toneMapping=THREE.ACESFilmicToneMapping;
+    this.ren.toneMappingExposure=1.15;
+    // Controls
+    this.ctrl=new THREE.OrbitControls(this.cam,this.canvas);
+    this.ctrl.enableDamping=true;this.ctrl.dampingFactor=.06;
+    this.ctrl.enablePan=false;this.ctrl.minDistance=1.35;this.ctrl.maxDistance=7.5;
+    this.ctrl.rotateSpeed=.45;this.ctrl.zoomSpeed=.9;
+    this.ctrl.autoRotate=true;this.ctrl.autoRotateSpeed=.28;
+    // Stars
+    this._mkStars();
+    // Earth
+    this._mkEarth().then(()=>{
+      this._mkAtmo();
+      this._events();this._loop();
+      if(this.cb.onReady)this.cb.onReady();
+    }).catch(err=>{
+      console.warn('[ORBIT] Textures failed, using fallback sphere',err);
+      this._mkFallbackEarth();
+      this._mkAtmo();
+      this._events();this._loop();
+      if(this.cb.onReady)this.cb.onReady();
+    });
+  }
+  _mkStars(){
+    const n=10000,pos=new Float32Array(n*3);
+    for(let i=0;i<n;i++){const t=Math.random()*Math.PI*2,p=Math.acos(2*Math.random()-1),r=50+Math.random()*30;pos[i*3]=r*Math.sin(p)*Math.cos(t);pos[i*3+1]=r*Math.cos(p);pos[i*3+2]=r*Math.sin(p)*Math.sin(t);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    this.scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size:.05,sizeAttenuation:true,transparent:true,opacity:.7})));
+  }
+  _mkFallbackEarth(){
+    this._earth=new THREE.Mesh(new THREE.SphereGeometry(1,96,96),new THREE.MeshPhongMaterial({color:0x1A4A7A,specular:0x223355,shininess:40}));
+    this.scene.add(this._earth);
+    this._eMat={uniforms:{uSun:{value:this._sunDir}}};
+    this.scene.add(new THREE.AmbientLight(0x223366,.4));
+    this._sun=new THREE.DirectionalLight(0xffffff,1.2);this.scene.add(this._sun);
+  }
+  async _mkEarth(){
+    const L=new THREE.TextureLoader();let p=0;
+    const load=url=>L.loadAsync(url).then(t=>{p++;if(this.cb.onProgress)this.cb.onProgress(p/3);return t;});
+    const BASE='https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/';
+    const [dT,nT,sT]=await Promise.all([
+      load(BASE+'earth_atmos_2048.jpg'),
+      load(BASE+'earth_lights_2048.png'),
+      load(BASE+'earth_specular_2048.jpg'),
+    ]);
+    [dT,nT,sT].forEach(t=>{t.encoding=THREE.sRGBEncoding||3001;t.anisotropy=this.ren.capabilities.getMaxAnisotropy();});
+    this._eMat=new THREE.ShaderMaterial({uniforms:{uDay:{value:dT},uNight:{value:nT},uSpec:{value:sT},uSun:{value:this._sunDir}},vertexShader:VERT_EARTH,fragmentShader:FRAG_EARTH});
+    this._earth=new THREE.Mesh(new THREE.SphereGeometry(1,96,96),this._eMat);
+    this.scene.add(this._earth);
+    this.scene.add(new THREE.AmbientLight(0x224466,.3));
+    this._sun=new THREE.DirectionalLight(0xffffff,1.2);this.scene.add(this._sun);
+  }
+  _mkAtmo(){
+    this._aMat=new THREE.ShaderMaterial({uniforms:{uSun:{value:this._sunDir}},vertexShader:VERT_ATMO,fragmentShader:FRAG_ATMO,transparent:true,blending:THREE.AdditiveBlending,side:THREE.BackSide,depthWrite:false});
+    this.scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.09,48,48),this._aMat));
+  }
+  removeAllHotspots(){
+    this.hotspots.forEach(h=>{
+      this.scene.remove(h.mesh);h.mesh.geometry.dispose();h.mat.dispose();
+      if(h.hitMesh){this.scene.remove(h.hitMesh);h.hitMesh.geometry.dispose();}
+    });this.hotspots=[];
+  }
+  addHotspot(data,color){
+    const pos=ll3(data.lat,data.lng,1.010);
+    const mat=new THREE.ShaderMaterial({uniforms:{uCol:{value:new THREE.Color(color)},uT:{value:0},uOp:{value:.88}},vertexShader:VERT_HS,fragmentShader:FRAG_HS,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+    const mob=innerWidth<768;
+    const sz=mob?(.045+data.intensity*.025):(.028+data.intensity*.016);
+    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),mat);
+    mesh.position.copy(pos);mesh.lookAt(pos.clone().normalize().multiplyScalar(2));
+    this.scene.add(mesh);
+    // Hitbox: 1.8x on mobile (was 3.5x — caused Spain to open France)
+    const hitSz=mob?sz*1.8:sz*2.2;
+    const hitMesh=new THREE.Mesh(new THREE.PlaneGeometry(hitSz,hitSz),new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide}));
+    hitMesh.position.copy(pos);hitMesh.lookAt(pos.clone().normalize().multiplyScalar(2));
+    this.scene.add(hitMesh);
+    this.hotspots.push({data,mesh,mat,hitMesh});
+  }
+  filterCat(cat){
+    this.hotspots.forEach(h=>{
+      const v=cat==='all'||h.data.category===cat;
+      h.mesh.visible=v;if(h.hitMesh)h.hitMesh.visible=v;
+    });
+  }
+  // Cinematic close-up — 3D oblique view of the surface
+  flyToClose(lat,lng,dur=1600){
+    this.ctrl.autoRotate=false;this._zoomed=true;
+    const surf=ll3(lat,lng,1.0);const N=surf.clone().normalize();
+    // East tangent for oblique angle
+    const east=new THREE.Vector3(-Math.sin(lng*Math.PI/180),0,-Math.cos(lng*Math.PI/180)).normalize();
+    const camTgt=surf.clone().multiplyScalar(1.44).addScaledVector(east,.10).addScaledVector(new THREE.Vector3(0,1,0),.04);
+    const lookTgt=surf.clone().multiplyScalar(.98);
+    const s=this.cam.position.clone();const sl=this.ctrl.target.clone();const t0=performance.now();
+    const ease=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+    const go=now=>{
+      const p=Math.min((now-t0)/dur,1);const e=ease(p);
+      this.cam.position.lerpVectors(s,camTgt,e);
+      const lk=sl.clone().lerp(lookTgt,e);this.cam.lookAt(lk);this.ctrl.target.copy(lk);
+      if(p<1)requestAnimationFrame(go);
+    };requestAnimationFrame(go);
+    // Highlight selected
+    this._sel=null;
+  }
+  _highlightHotspot(sel){
+    this.hotspots.forEach(h=>{if(h.mesh.visible)h.mat.uniforms.uOp.value=h===sel?1.0:.28;});
+  }
+  clearHighlight(){this.hotspots.forEach(h=>h.mat.uniforms.uOp.value=.88);}
+  flyTo(lat,lng,dist=2.6,dur=1200){
+    this.ctrl.autoRotate=false;this._zoomed=false;
+    const tgt=ll3(lat,lng,dist);const s=this.cam.position.clone();const t0=performance.now();
+    const go=now=>{const p=Math.min((now-t0)/dur,1);const e=1-Math.pow(1-p,3);this.cam.position.lerpVectors(s,tgt,e);this.cam.lookAt(0,0,0);if(p<1)requestAnimationFrame(go);};
+    requestAnimationFrame(go);
+  }
+  resetView(){
+    this._zoomed=false;
+    const tgt=new THREE.Vector3(0,.3,3.8);const s=this.cam.position.clone();const sl=this.ctrl.target.clone();const t0=performance.now();
+    const go=now=>{const p=Math.min((now-t0)/1100,1);const e=1-Math.pow(1-p,3);this.cam.position.lerpVectors(s,tgt,e);const lk=sl.clone().lerp(new THREE.Vector3(0,0,0),e);this.cam.lookAt(lk);this.ctrl.target.copy(lk);if(p<1)requestAnimationFrame(go);else{this.ctrl.target.set(0,0,0);this.ctrl.autoRotate=true;}};
+    requestAnimationFrame(go);
+  }
+  zoomIn(){this.cam.position.multiplyScalar(.85);}
+  zoomOut(){this.cam.position.multiplyScalar(1.18);}
+  toggleAuto(on){this.ctrl.autoRotate=on;}
+  _ndcFromEvent(e){this.mouse.x=(e.clientX/innerWidth)*2-1;this.mouse.y=-(e.clientY/innerHeight)*2+1;}
+  _hitHotspots(){
+    this.raycaster.setFromCamera(this.mouse,this.cam);
+    // Use hitMesh (larger invisible target) for easier touch/click
+    const meshes=this.hotspots.filter(h=>h.mesh.visible).map(h=>h.hitMesh||h.mesh);
+    const hits=this.raycaster.intersectObjects(meshes);
+    if(!hits.length)return null;
+    const obj=hits[0].object;
+    return this.hotspots.find(h=>h.hitMesh===obj||h.mesh===obj)||null;
+  }
+  _events(){
+    window.addEventListener('resize',()=>{this.cam.aspect=innerWidth/innerHeight;this.cam.updateProjectionMatrix();this.ren.setSize(innerWidth,innerHeight);});
+    this.canvas.addEventListener('click',e=>{this._ndcFromEvent(e);const h=this._hitHotspots();if(h){if(this.cb.onHotspotClick)this.cb.onHotspotClick(h.data);if(innerWidth<768){this.flyTo(h.data.lat,h.data.lng,2.0,900);}else{this.flyToClose(h.data.lat,h.data.lng);}this._highlightHotspot(h);}else{this.raycaster.setFromCamera(this.mouse,this.cam);if(this.raycaster.intersectObject(this._earth).length&&this.cb.onBackgroundClick)this.cb.onBackgroundClick();}});
+    this.canvas.addEventListener('mousemove',e=>{this._ndcFromEvent(e);const h=this._hitHotspots();if(h!==this._hovered){if(this._hovered&&this.cb.onHotspotLeave)this.cb.onHotspotLeave();if(h&&this.cb.onHotspotHover)this.cb.onHotspotHover(h.data,e.clientX,e.clientY);this._hovered=h;}this.canvas.style.cursor=h?'pointer':'grab';});
+    this.canvas.addEventListener('touchend',e=>{
+      const t=e.changedTouches[0];
+      // Pause rotation before hit detection so globe is static during tap
+      const wasRot=this.ctrl.autoRotate;this.ctrl.autoRotate=false;
+      this._ndcFromEvent(t);const h=this._hitHotspots();
+      if(h&&this.cb.onHotspotClick){this.cb.onHotspotClick(h.data);this.flyTo(h.data.lat,h.data.lng,2.0,900);this._highlightHotspot(h);}
+      else if(wasRot)this.ctrl.autoRotate=true;
+    });
+  }
+  _loop(){
+    requestAnimationFrame(()=>this._loop());
+    this._t+=.016;
+    if(Math.round(this._t*10)%100===0)this._sunDir=getSunDir();
+    if(this._eMat)this._eMat.uniforms.uSun.value.copy(this._sunDir);
+    if(this._aMat)this._aMat.uniforms.uSun.value.copy(this._sunDir);
+    if(this._sun)this._sun.position.copy(this._sunDir).multiplyScalar(8);
+    this.hotspots.forEach(h=>h.mat.uniforms.uT.value=this._t);
+    this.ctrl.update();this.ren.render(this.scene,this.cam);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  UI
+// ════════════════════════════════════════════════════════
+function setProgress(p){
+  document.getElementById('lb').style.width=`${Math.round(p*100)}%`;
+  const labels=['Initializing globe…','Loading Earth textures…','Calibrating sun position…','Placing news hotspots…','Almost ready…'];
+  document.getElementById('ll2').textContent=labels[Math.min(Math.floor(p*labels.length),labels.length-1)];
+}
+
+let activeCat='all',currentNews=[],countryPool=[],panelOpen=false;
+
+function renderCards(items){
+  const cc=document.getElementById('ncc');cc.innerHTML='';
+  if(!items||!items.length){
+    const msg=document.createElement('div');
+    msg.style.cssText='padding:32px;text-align:center;color:rgba(255,255,255,0.4);font-size:14px';
+    msg.textContent=tr('no_stories')||'No stories found';cc.appendChild(msg);return;
+  }
+  items.forEach((n,i)=>{
+    const cat=CATS[n.category]||CATS.all;
+    const catLbl=tr('cat_'+n.category)||cat.l;
+    const rising=n.trend==='rising';
+    const card=document.createElement('div');
+    card.style.cssText=[
+      'background:rgba(20,20,35,0.98)',
+      `border:1px solid ${cat.c}22`,
+      'border-radius:14px','padding:14px 14px 12px','cursor:pointer',
+      'position:relative','overflow:hidden','margin-bottom:0',
+      `border-top:2px solid ${cat.c}99`,
+      `animation-delay:${i*45}ms`
+    ].join(';');
+    // Meta
+    const meta=document.createElement('div');
+    meta.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:9px';
+    const badge=document.createElement('span');
+    badge.style.background=cat.bg;
+    badge.style.color=cat.c;
+    badge.style.fontSize='10px';
+    badge.style.fontWeight='700';
+    badge.style.padding='3px 8px';
+    badge.style.borderRadius='99px';
+    badge.textContent=cat.i+' '+catLbl;
+    const src=document.createElement('span');
+    src.style.cssText='font-size:11px;color:rgba(255,255,255,0.45);margin-left:auto';
+    src.textContent=n.source||'The Guardian';
+    const tim=document.createElement('span');
+    tim.style.cssText='font-size:11px;color:rgba(255,255,255,0.35);white-space:nowrap';
+    tim.textContent=n.timeAgo||'';
+    meta.append(badge,src,tim);
+    // Title — individual style props (cssText with font-name spaces can silently fail)
+    const title=document.createElement('div');
+    title.style.color='#ffffff';
+    title.style.fontSize='14px';
+    title.style.fontWeight='600';
+    title.style.lineHeight='1.4';
+    title.style.marginBottom='6px';
+    title.style.display='block';
+    title.textContent=n.title||'—';
+    // Summary — individual props
+    const summary=document.createElement('div');
+    summary.style.color='rgba(255,255,255,0.62)';
+    summary.style.fontSize='12.5px';
+    summary.style.lineHeight='1.55';
+    summary.style.marginBottom='10px';
+    summary.style.display='-webkit-box';
+    summary.style.webkitLineClamp='2';
+    summary.style.webkitBoxOrient='vertical';
+    summary.style.overflow='hidden';
+    summary.textContent=n.summary||'';
+    // Footer
+    const footer=document.createElement('div');
+    footer.style.cssText='display:flex;align-items:center;justify-content:space-between';
+    const rt=document.createElement('span');
+    rt.style.cssText='font-size:11px;color:rgba(255,255,255,0.35)';
+    rt.textContent='📖 '+(n.readTime||'3 min');
+    const trend=document.createElement('span');
+    trend.style.cssText=`font-size:11px;color:${rising?'#00FF88':'rgba(255,255,255,0.35)'}`;
+    trend.textContent=rising?('↑ '+(tr('rising')||'Rising')):('— '+(tr('stable')||'Stable'));
+    footer.append(rt,trend);
+    card.append(meta,title,summary,footer);
+    card.addEventListener('click',()=>openArticle(n));
+    cc.appendChild(card);
+  });
+}
+
+function openPanel(items,pool,title,sub,flag){
+  currentNews=items;countryPool=pool||items;
+  document.getElementById('pcountry').textContent=title;
+  document.getElementById('psub').textContent=sub;
+  document.getElementById('pflag').textContent=flag||'🌍';
+  hideTooltip(); // Always hide tooltip when opening panel
+  renderCards(items);
+  document.getElementById('npanel').classList.add('open');
+  panelOpen=true;
+}
+function closePanel(){
+  document.getElementById('npanel').classList.remove('open');
+  panelOpen=false;
+  countryPool=[];
+  if(window._orbitGlobe){
+    window._orbitGlobe.clearHighlight();
+    // On desktop: reset close-up zoom. On mobile: just re-enable auto-rotate
+    if(window._orbitGlobe._zoomed){window._orbitGlobe.resetView();}
+    else{window._orbitGlobe.ctrl.autoRotate=true;}
+  }
+}
+
+function openArticle(n){
+  // On mobile: close news panel first so it doesn't show behind the article
+  if(innerWidth<768){
+    document.getElementById('npanel').classList.remove('open');
+    panelOpen=false;
+  }
+  const cat=CATS[n.category]||CATS.all;const flag=FLAGS[n.country]||'🌍';
+  // Compact date on mobile
+  const mob=innerWidth<768;
+  const dateOpts=mob?{year:'numeric',month:'short',day:'numeric'}:{weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  const date=new Date(n.timestamp).toLocaleDateString(_lang||'en',dateOpts);
+  // AI summary label from i18n
+  const aiLabel=tr('ai_summary')||'✦ AI SUMMARY';
+  const readOnLabel=tr('read_on')||'Read on The Guardian';
+  // Content: just the CTA link — no duplicate summary
+  const articleContent=n.url
+    ?`<p><a href="${n.url}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:99px;font-size:14px;font-weight:600;color:#fff;text-decoration:none;font-family:var(--fd)">${readOnLabel} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></p>`
+    :(n.content||'');
+  document.getElementById('abody').innerHTML=`<div class="acbadge" style="background:${cat.bg};color:${cat.c};border:1px solid ${cat.c}33">${cat.i} ${tr('cat_'+n.category)||cat.l}</div><h1 class="aheadline">${n.title}</h1><div class="ameta"><span class="asrc">${flag} ${n.source}</span><span class="adot"></span><span class="adate">${date}</span><span class="art">📖 ${n.readTime||'3 min'}</span></div><div class="aai"><div class="aail">${aiLabel}</div><div class="aait">${n.summary||'Read the full article for details.'}</div></div><div class="acontent">${articleContent}</div><div class="atags">${(n.tags||[]).map(t=>`<span class="atag">#${t}</span>`).join('')}</div>`;
+  document.getElementById('amodal').classList.remove('hidden');
+}
+function closeArticle(){document.getElementById('amodal').classList.add('hidden');}
+
+function showTooltip(text,flag,x,y){
+  const tt=document.getElementById('ttp');
+  document.getElementById('ttf').textContent=flag||'';
+  document.getElementById('ttn').textContent=text.length>45?text.slice(0,45)+'…':text;
+  tt.style.left=x+'px';tt.style.top=y+'px';tt.classList.add('vis');
+}
+function hideTooltip(){document.getElementById('ttp').classList.remove('vis');}
+
+function initTrending(){
+  const doubled=[...TRENDING,...TRENDING];
+  document.getElementById('tinner').innerHTML=doubled.map((t,i)=>`<span class="titem"><span class="trank">#${(i%TRENDING.length)+1}</span><span>${t.l}</span><span style="font-size:11px;color:var(--t40)">${t.c}</span></span><span class="tsep">·</span>`).join('');
+}
+
+function initSearch(globe){
+  const inp=document.getElementById('srchi'),res=document.getElementById('srchr');
+  let st;
+  inp.addEventListener('input',()=>{
+    clearTimeout(st);st=setTimeout(()=>{
+      const q=inp.value.trim().toLowerCase();if(!q){res.classList.remove('vis');return;}
+      const pool=window._orbitNews||NEWS;const found=pool.filter(n=>n.title.toLowerCase().includes(q)||(n.tags||[]).some(t=>t.includes(q))||n.country.toLowerCase().includes(q)||n.category.includes(q)).slice(0,6);
+      if(!found.length){res.classList.remove('vis');return;}
+      res.innerHTML=found.map(n=>{const cat=CATS[n.category];const f=FLAGS[n.country]||'';return `<div class="srch-ri" data-id="${n.id}"><span style="font-size:18px">${cat.i}</span><div><div style="font-size:13px;font-weight:500">${n.title.slice(0,55)}…</div><div class="srch-rcat">${f} ${CNAMES[n.country]||n.country} · ${cat.l}</div></div></div>`;}).join('');
+      res.classList.add('vis');
+      res.querySelectorAll('.srch-ri').forEach(el=>{el.addEventListener('click',()=>{const item=NEWS.find(n=>n.id===el.dataset.id);if(item){openArticle(item);res.classList.remove('vis');inp.value='';globe.flyTo(item.lat,item.lng);}});});
+    },280);
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('#srchw'))res.classList.remove('vis');});
+}
+
+function initWorldClock(){
+  const zones={'c-nyc':'America/New_York','c-lon':'Europe/London','c-tky':'Asia/Tokyo','c-dxb':'Asia/Dubai'};
+  const update=()=>Object.entries(zones).forEach(([id,tz])=>{const el=document.getElementById(id);if(el)el.textContent=new Date().toLocaleTimeString('en-US',{timeZone:tz,hour:'2-digit',minute:'2-digit',hour12:false});});
+  update();setInterval(update,1000);
+}
+
+function initSidebar(globe){
+  document.querySelectorAll('.sitem').forEach(item=>{
+    item.addEventListener('click',()=>{
+      document.querySelectorAll('.sitem').forEach(i=>i.classList.remove('active'));
+      item.classList.add('active');
+      activeCat=item.dataset.cat;
+      globe.filterCat(activeCat);
+      if(panelOpen && countryPool.length){
+        // Filter within the CURRENT COUNTRY's pool — this is the bug fix
+        let filtered=activeCat==='all'?countryPool:countryPool.filter(n=>n.category===activeCat);
+        if(!filtered.length)filtered=countryPool; // Fallback: show all for country
+        currentNews=filtered;
+        renderCards(filtered);
+      }
+    });
+  });
+}
+
+// Generate AI Brief from live news with translated section headers
+function genBrief(){
+  const pool=window._orbitNews||NEWS;
+  if(!pool.length)return`<div style="padding:20px;color:var(--t40);font-size:14px">${tr('brief_no_news')}</div>`;
+  const SECS=[
+    {cats:['politics'],icon:'🌍',key:'brief_global'},
+    {cats:['sports'],icon:'⚽',key:'brief_sports'},
+    {cats:['technology'],icon:'💻',key:'brief_tech'},
+    {cats:['science'],icon:'🔬',key:'brief_science'},
+    {cats:['entertainment','music'],icon:'🎬',key:'brief_entertainment'},
+    {cats:['gaming'],icon:'🎮',key:'brief_gaming'},
+    {cats:['finance','crypto'],icon:'📈',key:'brief_finance'},
+  ];
+  const parts=[];
+  SECS.forEach(s=>{
+    const items=pool.filter(n=>s.cats.includes(n.category)).sort((a,b)=>b.intensity-a.intensity).slice(0,2);
+    if(!items.length)return;
+    const label=`${s.icon} ${tr(s.key)}`;
+    const text=items.map(n=>`<strong>${n.title}</strong>${n.summary?` — ${n.summary.slice(0,110)}${n.summary.length>110?'…':''}`:''}`).join('<br><br>');
+    parts.push({label,text});
+  });
+  if(!parts.length){
+    const top=[...pool].sort((a,b)=>b.intensity-a.intensity).slice(0,5);
+    parts.push({label:'🌍 TOP STORIES',text:top.map(n=>`<strong>${n.title}</strong>`).join('<br>')});
+  }
+  const powered=`<div style="margin-top:16px;font-size:11px;color:var(--t40);font-style:italic">✦ ${tr('brief_powered')}</div>`;
+  return parts.map((p,i)=>`${i>0?'<div style="height:1px;background:var(--gb)"></div>':''}<div style="padding-top:${i?16:0}px"><div class="br">${p.label}</div><div class="bt">${p.text}</div></div>`).join('')+powered;
+}
+
+function initAIBrief(){
+  const btn=document.getElementById('btn-ai'),panel=document.getElementById('aipanel'),content=document.getElementById('aipc');
+  btn.addEventListener('click',()=>{
+    if(panel.classList.contains('hidden')){
+      content.innerHTML=genBrief();
+      panel.classList.remove('hidden');document.getElementById('ppanel').classList.add('hidden');
+    }else panel.classList.add('hidden');
+  });
+  document.getElementById('ai-close').addEventListener('click',()=>panel.classList.add('hidden'));
+}
+
+function initProfile(){
+  const btn=document.getElementById('btn-profile'),panel=document.getElementById('ppanel');
+  btn.addEventListener('click',()=>{if(panel.classList.contains('hidden')){panel.classList.remove('hidden');document.getElementById('aipanel').classList.add('hidden');}else panel.classList.add('hidden');});
+  document.getElementById('pp-close').addEventListener('click',()=>panel.classList.add('hidden'));
+}
+
+// Onboarding
+function initOnboarding(){
+  let step=1;const dots=document.querySelectorAll('.ob-dot');
+  const goto=s=>{document.querySelectorAll('.ob-step').forEach(el=>el.classList.remove('active'));dots.forEach((d,i)=>d.classList.toggle('active',i+1===s));document.querySelector(`.ob-step[data-step="${s}"]`).classList.add('active');step=s;};
+  document.querySelectorAll('.ob-cat').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('sel')));
+  document.getElementById('ob-next-1').addEventListener('click',()=>goto(2));
+  document.getElementById('ob-next-2').addEventListener('click',()=>goto(3));
+  document.getElementById('ob-next-3').addEventListener('click',()=>goto(4));
+  const launch=()=>{const ob=document.getElementById('onboarding');ob.style.transition='opacity .6s ease';ob.style.opacity='0';setTimeout(()=>ob.classList.add('hidden'),600);localStorage.setItem('orbit_v1','1');};
+  document.getElementById('ob-launch').addEventListener('click',launch);
+  document.getElementById('ob-skip').addEventListener('click',launch);
+}
+
+// ════════════════════════════════════════════════════════
+//  GUARDIAN NEWS SERVICE
+// ════════════════════════════════════════════════════════
+const GK='test'; // Guardian free test key
+const GB='https://content.guardianapis.com';
+
+const TAG_GEO={
+  'world/united-kingdom':{lat:51.5,lng:-0.1,country:'UK'},
+  'world/uk':{lat:51.5,lng:-0.1,country:'UK'},
+  'world/spain':{lat:40.4,lng:-3.7,country:'ES'},
+  'world/france':{lat:48.9,lng:2.35,country:'FR'},
+  'world/germany':{lat:52.5,lng:13.4,country:'DE'},
+  'world/italy':{lat:41.9,lng:12.5,country:'IT'},
+  'world/ukraine':{lat:50.4,lng:30.5,country:'UA'},
+  'world/russia':{lat:55.7,lng:37.6,country:'RU'},
+  'world/united-states':{lat:38.9,lng:-77.0,country:'US'},
+  'world/us-news':{lat:40.7,lng:-74.0,country:'US'},
+  'world/canada':{lat:45.4,lng:-75.7,country:'CA'},
+  'world/mexico':{lat:19.4,lng:-99.1,country:'MX'},
+  'world/brazil':{lat:-15.8,lng:-47.9,country:'BR'},
+  'world/argentina':{lat:-34.6,lng:-58.4,country:'AR'},
+  'world/china':{lat:39.9,lng:116.4,country:'CN'},
+  'world/japan':{lat:35.7,lng:139.7,country:'JP'},
+  'world/south-korea':{lat:37.6,lng:126.9,country:'KR'},
+  'world/india':{lat:28.6,lng:77.2,country:'IN'},
+  'world/australia':{lat:-33.9,lng:151.2,country:'AU'},
+  'world/middle-east':{lat:25.2,lng:45.0,country:'SA'},
+  'world/israel':{lat:31.8,lng:35.2,country:'IL'},
+  'world/africa':{lat:0,lng:20,country:'NG'},
+  'world/nigeria':{lat:9.1,lng:7.4,country:'NG'},
+  'world/south-africa':{lat:-25.7,lng:28.2,country:'ZA'},
+  'football/premier-league':{lat:51.5,lng:-0.1,country:'UK',category:'sports'},
+  'football/laliga':{lat:40.4,lng:-3.7,country:'ES',category:'sports'},
+  'football/bundesliga':{lat:52.5,lng:13.4,country:'DE',category:'sports'},
+  'football/ligue1':{lat:48.9,lng:2.35,country:'FR',category:'sports'},
+  'football/seriea':{lat:41.9,lng:12.5,country:'IT',category:'sports'},
+  'football/champions-league':{lat:50,lng:10,category:'sports'},
+  'sport/nba':{lat:40.7,lng:-74.0,country:'US',category:'sports'},
+  'sport/nfl':{lat:38.9,lng:-77.0,country:'US',category:'sports'},
+  'sport/formula-one':{lat:51.5,lng:-0.1,category:'sports'},
+  'sport/tennis':{lat:51.4,lng:-0.2,country:'UK',category:'sports'},
+  'sport/cricket':{lat:28.6,lng:77.2,country:'IN',category:'sports'},
+  'sport/cycling':{lat:48.9,lng:2.35,country:'FR',category:'sports'},
+  'sport/olympics':{lat:35.7,lng:139.7,country:'JP',category:'sports'},
+  'technology/artificial-intelligence':{lat:37.4,lng:-122.1,country:'US',category:'technology'},
+  'technology/apple':{lat:37.3,lng:-122.0,country:'US',category:'technology'},
+  'technology/google':{lat:37.4,lng:-122.1,country:'US',category:'technology'},
+  'technology/microsoft':{lat:47.6,lng:-122.1,country:'US',category:'technology'},
+  'technology/samsung':{lat:37.6,lng:126.9,country:'KR',category:'technology'},
+  'technology/elon-musk':{lat:30.3,lng:-97.7,country:'US',category:'technology'},
+  'business/stock-markets':{lat:40.7,lng:-74.0,country:'US',category:'finance'},
+  'business/cryptocurrencies':{lat:40.7,lng:-74.0,country:'US',category:'crypto'},
+  'business/bitcoin':{lat:40.7,lng:-74.0,country:'US',category:'crypto'},
+  'film/film':{lat:34.1,lng:-118.3,country:'US',category:'entertainment'},
+  'music/music':{lat:40.7,lng:-74.0,country:'US',category:'music'},
+  'music/pop-and-rock':{lat:51.5,lng:-0.1,country:'UK',category:'music'},
+  'games/games':{lat:47.6,lng:-122.3,country:'US',category:'gaming'},
+  'games/nintendo':{lat:34.7,lng:135.5,country:'JP',category:'gaming'},
+  'science/space':{lat:29.6,lng:-95.1,country:'US',category:'science'},
+  'science/climate-change':{lat:51.5,lng:-0.1,country:'UK',category:'science'},
+};
+const SEC_DEF={
+  sport:{lat:51.5,lng:-0.1,country:'UK',category:'sports'},
+  football:{lat:51.5,lng:-0.1,country:'UK',category:'sports'},
+  technology:{lat:37.4,lng:-122.1,country:'US',category:'technology'},
+  business:{lat:40.7,lng:-74.0,country:'US',category:'finance'},
+  money:{lat:40.7,lng:-74.0,country:'US',category:'finance'},
+  world:{lat:51.5,lng:-0.1,country:'UK',category:'politics'},
+  'us-news':{lat:38.9,lng:-77.0,country:'US',category:'politics'},
+  film:{lat:34.1,lng:-118.3,country:'US',category:'entertainment'},
+  music:{lat:40.7,lng:-74.0,country:'US',category:'music'},
+  games:{lat:47.6,lng:-122.3,country:'US',category:'gaming'},
+  science:{lat:29.6,lng:-95.1,country:'US',category:'science'},
+  environment:{lat:51.5,lng:-0.1,country:'UK',category:'science'},
+  culture:{lat:51.5,lng:-0.1,country:'UK',category:'entertainment'},
+};
+const SEC_CAT={sport:'sports',football:'sports',technology:'technology',business:'finance',money:'finance',world:'politics','us-news':'politics',film:'entertainment',music:'music',games:'gaming',science:'science',environment:'science',culture:'entertainment'};
+
+function stripHtml(h){return (h||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').trim();}
+function tagGeo(article){
+  for(const t of(article.tags||[])){const g=TAG_GEO[t.id];if(g)return g;}
+  return SEC_DEF[article.sectionId]||{lat:(Math.random()-.5)*100,lng:(Math.random()-.5)*320};
+}
+function gTimeAgo(d){const h=(Date.now()-new Date(d))/(36e5);if(h<1)return`${Math.round(h*60)}m ago`;if(h<24)return`${Math.round(h)}h ago`;return`${Math.round(h/24)}d ago`;}
+
+// Per-country tag sources with precise city coordinates per category
+const CSRC=[
+  {tag:'world/united-kingdom',country:'UK',cLoc:{politics:{lat:51.501,lng:-.124},sports:{lat:53.483,lng:-2.2},technology:{lat:51.522,lng:-.088},entertainment:{lat:51.510,lng:-.134},science:{lat:51.754,lng:-1.256},finance:{lat:51.513,lng:-.092},music:{lat:51.505,lng:-.110}}},
+  {tag:'world/united-states',country:'US',cLoc:{politics:{lat:38.907,lng:-77.036},sports:{lat:40.750,lng:-73.993},technology:{lat:37.387,lng:-122.082},entertainment:{lat:34.093,lng:-118.328},science:{lat:29.553,lng:-95.097},finance:{lat:40.706,lng:-74.011},music:{lat:36.162,lng:-86.779}}},
+  {tag:'world/spain',country:'ES',cLoc:{politics:{lat:40.416,lng:-3.703},sports:{lat:40.453,lng:-3.688},technology:{lat:41.386,lng:2.175},entertainment:{lat:40.421,lng:-3.692},science:{lat:41.389,lng:2.113},finance:{lat:40.411,lng:-3.694},music:{lat:41.384,lng:2.182}}},
+  {tag:'world/france',country:'FR',cLoc:{politics:{lat:48.864,lng:2.333},sports:{lat:48.924,lng:2.360},technology:{lat:48.898,lng:2.376},entertainment:{lat:48.872,lng:2.330},science:{lat:48.844,lng:2.344},finance:{lat:48.875,lng:2.326},music:{lat:48.877,lng:2.356}}},
+  {tag:'world/germany',country:'DE',cLoc:{politics:{lat:52.520,lng:13.376},sports:{lat:48.218,lng:11.625},technology:{lat:52.531,lng:13.385},entertainment:{lat:53.553,lng:9.993},science:{lat:52.516,lng:13.393},finance:{lat:50.107,lng:8.663},music:{lat:53.573,lng:10.015}}},
+  {tag:'world/italy',country:'IT',cLoc:{politics:{lat:41.897,lng:12.481},sports:{lat:45.478,lng:9.124},technology:{lat:45.464,lng:9.190},entertainment:{lat:41.902,lng:12.482},science:{lat:45.468,lng:9.181},finance:{lat:45.466,lng:9.193},music:{lat:45.472,lng:9.186}}},
+  {tag:'world/japan',country:'JP',cLoc:{politics:{lat:35.676,lng:139.745},sports:{lat:35.665,lng:139.714},technology:{lat:35.702,lng:139.751},entertainment:{lat:35.695,lng:139.702},science:{lat:35.630,lng:139.728},finance:{lat:35.683,lng:139.769},music:{lat:35.661,lng:139.699}}},
+  {tag:'world/china',country:'CN',cLoc:{politics:{lat:39.905,lng:116.391},sports:{lat:40.009,lng:116.391},technology:{lat:22.540,lng:114.058},entertainment:{lat:31.230,lng:121.474},science:{lat:39.983,lng:116.322},finance:{lat:31.233,lng:121.473},music:{lat:31.236,lng:121.477}}},
+  {tag:'world/india',country:'IN',cLoc:{politics:{lat:28.614,lng:77.202},sports:{lat:22.519,lng:88.343},technology:{lat:12.972,lng:77.594},entertainment:{lat:19.089,lng:72.868},science:{lat:13.068,lng:80.248},finance:{lat:18.924,lng:72.833},music:{lat:19.076,lng:72.877}}},
+  {tag:'world/brazil',country:'BR',cLoc:{politics:{lat:-15.799,lng:-47.864},sports:{lat:-22.912,lng:-43.172},technology:{lat:-23.567,lng:-46.654},entertainment:{lat:-22.900,lng:-43.200},science:{lat:-23.563,lng:-46.655},finance:{lat:-23.543,lng:-46.634},music:{lat:-22.970,lng:-43.185}}},
+  {tag:'world/australia',country:'AU',cLoc:{politics:{lat:-35.307,lng:149.124},sports:{lat:-37.816,lng:144.984},technology:{lat:-33.866,lng:151.204},entertainment:{lat:-33.857,lng:151.215},science:{lat:-35.274,lng:149.119},finance:{lat:-33.869,lng:151.209},music:{lat:-37.813,lng:144.963}}},
+  {tag:'world/ukraine',country:'UA',cLoc:{politics:{lat:50.450,lng:30.522},sports:{lat:50.434,lng:30.521},technology:{lat:50.445,lng:30.523},entertainment:{lat:50.448,lng:30.519},science:{lat:50.445,lng:30.454},finance:{lat:50.441,lng:30.527},music:{lat:50.455,lng:30.518}}},
+  {tag:'world/south-korea',country:'KR',cLoc:{politics:{lat:37.576,lng:126.976},sports:{lat:37.569,lng:126.980},technology:{lat:37.484,lng:127.034},entertainment:{lat:37.487,lng:127.028},science:{lat:36.373,lng:127.363},finance:{lat:37.521,lng:127.027},music:{lat:37.559,lng:126.992}}},
+  {tag:'world/russia',country:'RU',cLoc:{politics:{lat:55.751,lng:37.618},sports:{lat:55.831,lng:37.440},technology:{lat:55.732,lng:37.632},entertainment:{lat:55.760,lng:37.618},science:{lat:55.688,lng:37.542},finance:{lat:55.750,lng:37.617},music:{lat:55.756,lng:37.617}}},
+  {tag:'world/argentina',country:'AR',cLoc:{politics:{lat:-34.608,lng:-58.371},sports:{lat:-34.545,lng:-58.450},technology:{lat:-34.598,lng:-58.372},entertainment:{lat:-34.600,lng:-58.379},science:{lat:-34.603,lng:-58.386},finance:{lat:-34.601,lng:-58.368},music:{lat:-34.617,lng:-58.376}}},
+];
+const SSRC=[
+  {tag:'football/premier-league',country:'UK',category:'sports',lat:53.483,lng:-2.2},
+  {tag:'football/laliga',country:'ES',category:'sports',lat:40.453,lng:-3.688},
+  {tag:'football/champions-league',country:'DE',category:'sports',lat:50.068,lng:8.645},
+  {tag:'sport/nba',country:'US',category:'sports',lat:40.750,lng:-73.993},
+  {tag:'sport/formula-one',country:'UK',category:'sports',lat:52.078,lng:-1.017},
+  {tag:'games/games',country:'US',category:'gaming',lat:37.387,lng:-122.082},
+  {tag:'technology/artificial-intelligence',country:'US',category:'technology',lat:37.387,lng:-122.082},
+  {tag:'science/space',country:'US',category:'science',lat:29.553,lng:-95.097},
+  {tag:'business/cryptocurrencies',country:'US',category:'crypto',lat:40.706,lng:-74.011},
+];
+const SCAT={sport:'sports',football:'sports',technology:'technology',business:'finance',money:'finance',world:'politics','us-news':'politics',film:'entertainment',music:'music',games:'gaming',science:'science',environment:'science',culture:'entertainment'};
+
+function detCat(a){
+  const sc=SCAT[a.sectionId];if(sc)return sc;
+  for(const t of(a.tags||[])){if(t.id.startsWith('sport/')||t.id.startsWith('football/'))return'sports';if(t.id.startsWith('technology/'))return'technology';if(t.id.startsWith('games/'))return'gaming';if(t.id.startsWith('film/')||t.id.startsWith('music/'))return'entertainment';if(t.id.startsWith('science/')||t.id.startsWith('environment/'))return'science';if(t.id.startsWith('business/')||t.id.startsWith('money/'))return'finance';}
+  const tx=`${a.webTitle} ${a.fields?.trailText||''}`.toLowerCase();
+  if(/footbal|cricket|rugby|tennis|golf|nba|nfl|formula|olymp|champion/i.test(tx))return'sports';
+  if(/artificial intel|machine learn|tech startup|silicon valley|cyber|openai/i.test(tx))return'technology';
+  if(/film|movie|music|album|concert|celebrity|netflix|hollywood/i.test(tx))return'entertainment';
+  if(/climate|space|nasa|research|discovery|quantum/i.test(tx))return'science';
+  if(/stock|inflation|bank|recession|gdp|crypto|bitcoin/i.test(tx))return'finance';
+  return'politics';
+}
+function mkItem(a,country,locMap,ovCat){
+  const cat=ovCat||detCat(a);
+  // BUGFIX: fallback chain for missing category coords
+  // gaming/crypto/fashion weren't in cLoc → was defaulting to (0,0)
+  const loc=locMap?.[cat]
+    ||locMap?.['politics']    // country capital as fallback
+    ||(locMap?Object.values(locMap)[0]:null); // any city in country
+  const baseLat=loc?.lat??0, baseLng=loc?.lng??0;
+  // Wider jitter per article so same-country articles spread across the country
+  const jt=(v,r)=>v+(Math.random()-.5)*r;
+  const trail=stripHtml(a.fields?.trailText||'');
+  const readOnLabel=tr('read_on')||'Read on The Guardian';
+  const content=a.webUrl
+    ?`<p style="margin-bottom:20px"><a href="${a.webUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:99px;font-size:14px;font-weight:600;color:#fff;text-decoration:none;font-family:var(--fd)">${readOnLabel} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></p>`
+    :'';
+  return{id:a.id,title:a.webTitle,summary:trail,content,category:cat,country,
+    lat:jt(baseLat,.9),lng:jt(baseLng,.9),  // ±0.9° ≈ ±100km spread
+    intensity:.5+Math.random()*.5,timestamp:new Date(a.webPublicationDate).getTime(),
+    timeAgo:gTimeAgo(a.webPublicationDate),source:'The Guardian',url:a.webUrl,
+    tags:(a.tags||[]).slice(0,5).map(t=>t.id.split('/').pop()),readTime:'3 min',
+    trend:Math.random()>.4?'rising':'stable'};
+}
+async function gFetch(params){
+  const u=new URL(`${GB}/search`);u.searchParams.set('api-key',GK);u.searchParams.set('show-fields','trailText');u.searchParams.set('show-tags','keyword');u.searchParams.set('page-size','8');u.searchParams.set('order-by','newest');Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r=await fetch(u.toString(),{signal:AbortSignal.timeout(7000)});if(!r.ok)throw new Error(`G${r.status}`);return(await r.json()).response.results||[];
+}
+// RSS feeds for native language news
+const DW='https://rss.dw.com/rdf';
+const LRSS={
+  es:[
+    // DW Spanish — native CORS, no proxy needed
+    {url:`${DW}/rss-sp-top`,source:'DW Español',country:'ES',category:'politics',lat:40.416,lng:-3.703,direct:true},
+    {url:'https://feeds.bbci.co.uk/mundo/rss.xml',source:'BBC Mundo',country:'ES',category:'politics',lat:40.416,lng:-3.703,direct:true},
+    {url:'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada',source:'El País',country:'ES',category:'politics',lat:40.416,lng:-3.703},
+    {url:'https://e00-marca.uecdn.es/rss/portada.xml',source:'Marca',country:'ES',category:'sports',lat:40.453,lng:-3.688},
+    {url:'https://www.xataka.com/index.xml',source:'Xataka',country:'ES',category:'technology',lat:41.386,lng:2.175},
+    {url:'https://www.20minutos.es/rss/',source:'20minutos',country:'ES',category:'politics',lat:40.416,lng:-3.703},
+    {url:'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/economia',source:'El País Eco',country:'ES',category:'finance',lat:40.411,lng:-3.694},
+    {url:'https://www.as.com/rss.xml',source:'AS',country:'ES',category:'sports',lat:40.453,lng:-3.688},
+    {url:'https://www.infobae.com/feeds/rss/',source:'Infobae',country:'AR',category:'politics',lat:-34.608,lng:-58.371},
+    {url:'https://www.clarin.com/rss/ultimas_noticias.xml',source:'Clarín',country:'AR',category:'politics',lat:-34.608,lng:-58.371},
+  ],
+  fr:[
+    {url:`${DW}/rss-fr-all`,source:'DW Français',country:'FR',category:'politics',lat:48.864,lng:2.333,direct:true},
+    {url:'https://www.france24.com/fr/rss',source:'France 24',country:'FR',category:'politics',lat:48.864,lng:2.333,direct:true},
+    {url:'https://www.lemonde.fr/rss/une.xml',source:'Le Monde',country:'FR',category:'politics',lat:48.864,lng:2.333},
+    {url:'https://www.lequipe.fr/rss/actu_rss.xml',source:"L'Équipe",country:'FR',category:'sports',lat:48.924,lng:2.360},
+    {url:'https://www.lefigaro.fr/rss/figaro_actualites.xml',source:'Le Figaro',country:'FR',category:'politics',lat:48.864,lng:2.333},
+    {url:'https://www.franceinfo.fr/titre-info/rss.xml',source:'France Info',country:'FR',category:'politics',lat:48.864,lng:2.333},
+    {url:'https://www.lemonde.fr/economie/rss_full.xml',source:'Le Monde Eco',country:'FR',category:'finance',lat:48.875,lng:2.326},
+  ],
+  de:[
+    {url:`${DW}/rss-de-all`,source:'DW Deutsch',country:'DE',category:'politics',lat:52.520,lng:13.376,direct:true},
+    {url:`${DW}/rss-de-ger`,source:'DW Deutschland',country:'DE',category:'politics',lat:52.520,lng:13.376,direct:true},
+    {url:'https://www.tagesschau.de/xml/rss2/',source:'Tagesschau',country:'DE',category:'politics',lat:52.520,lng:13.376},
+    {url:'https://www.spiegel.de/schlagzeilen/index.rss',source:'Spiegel',country:'DE',category:'politics',lat:52.520,lng:13.376},
+    {url:'https://newsfeed.zeit.de/all',source:'Zeit Online',country:'DE',category:'politics',lat:53.553,lng:9.993},
+    {url:'https://www.kicker.de/news/fussball/bundesliga/spieltag/1-bundesliga.rss',source:'Kicker',country:'DE',category:'sports',lat:48.218,lng:11.625},
+    {url:'https://rss.dw.com/rdf/rss-en-top',source:'Deutsche Welle',country:'DE',category:'politics',lat:50.734,lng:7.099},
+  ],
+};
+async function fetchRSS(meta){
+  try{
+    let xml=null;
+    // Direct fetch for CORS-native sources (DW, BBC)
+    if(meta.direct){try{const dr=await fetch(meta.url,{signal:AbortSignal.timeout(5000)});if(dr.ok)xml=await dr.text();}catch(_){}}
+    // Proxy fallback
+    if(!xml||xml.length<50){try{const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(meta.url)}`,{signal:AbortSignal.timeout(5000)});if(r.ok){const d=await r.json();xml=d.contents;}}catch(_){}}
+    if(!xml||xml.length<50)throw new Error('empty');
+    const doc=new DOMParser().parseFromString(xml,'application/xml');
+    const clean=s=>(s||'').replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').trim();
+    return Array.from(doc.querySelectorAll('item')).slice(0,8).map((item,i)=>{
+      const title=clean(item.querySelector('title')?.textContent);
+      const desc=clean(item.querySelector('description')?.textContent);
+      const link=clean(item.querySelector('link')?.textContent)||clean(item.querySelector('guid')?.textContent)||'';
+      const pub=item.querySelector('pubDate')?.textContent||'';
+      if(!title||title.length<4)return null;
+      const jt=v=>v+(Math.random()-.5)*.35;
+      return{id:`rss-${meta.source}-${i}-${Date.now()}`,title,summary:desc.slice(0,220),content:`<p style="margin-bottom:16px;color:var(--t60)">${desc.slice(0,350)}${desc.length>350?'…':''}</p><p><a href="${link}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:99px;font-size:13px;font-weight:600;color:#fff;text-decoration:none">Leer artículo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></p>`,category:meta.category,country:meta.country,lat:jt(meta.lat),lng:jt(meta.lng),intensity:.45+Math.random()*.5,timestamp:pub?new Date(pub).getTime():Date.now()-i*1800000,timeAgo:gTimeAgo(pub||new Date().toISOString()),source:meta.source,url:link,tags:[meta.category,meta.country.toLowerCase()],readTime:'2 min',trend:Math.random()>.4?'rising':'stable'};
+    }).filter(Boolean);
+  }catch(e){console.warn(`[RSS] ${meta.source}:`,e.message);return[];}
+}
+
+async function fetchGuardianNews(){
+  const all=[];
+  const cRes=await Promise.allSettled(CSRC.map(src=>gFetch({tag:src.tag,'page-size':'12'}).then(arts=>arts.map(a=>mkItem(a,src.country,src.cLoc)))));
+  cRes.forEach(r=>{if(r.status==='fulfilled')all.push(...r.value);});
+  const sRes=await Promise.allSettled(SSRC.map(src=>gFetch({tag:src.tag,'page-size':'8'}).then(arts=>arts.slice(0,8).map(a=>{const it=mkItem(a,src.country,null,src.category);it.lat=src.lat+(Math.random()-.5)*.3;it.lng=src.lng+(Math.random()-.5)*.3;return it;}))));
+  sRes.forEach(r=>{if(r.status==='fulfilled')all.push(...r.value);});
+  // RSS native language feeds
+  const rssFeeds=LRSS[_lang]||[];
+  if(rssFeeds.length){const rRes=await Promise.allSettled(rssFeeds.map(m=>fetchRSS(m)));rRes.forEach(r=>{if(r.status==='fulfilled')all.push(...r.value);});}
+  const seen=new Set();const seenT=new Set();
+  return all.filter(n=>{if(seen.has(n.id))return false;seen.add(n.id);const k=n.title.slice(0,40).toLowerCase();if(seenT.has(k))return false;seenT.add(k);return true;});
+}
+
+// Country centroids for ONE-hotspot-per-country
+const CC={UK:{lat:52.5,lng:-1.8},US:{lat:39.5,lng:-98.4},ES:{lat:40.0,lng:-4.0},FR:{lat:46.2,lng:2.2},DE:{lat:51.2,lng:10.5},IT:{lat:42.5,lng:12.6},JP:{lat:36.2,lng:138.2},CN:{lat:35.0,lng:105.0},IN:{lat:20.6,lng:79.0},BR:{lat:-14.2,lng:-51.9},AU:{lat:-25.3,lng:133.8},UA:{lat:48.4,lng:31.2},KR:{lat:35.9,lng:127.8},RU:{lat:61.5,lng:90.0},AR:{lat:-38.4,lng:-63.6},MX:{lat:23.6,lng:-102.5},CA:{lat:56.1,lng:-106.3},NG:{lat:9.1,lng:8.7},ZA:{lat:-28.5,lng:24.7},SA:{lat:23.9,lng:45.1},IL:{lat:31.5,lng:34.8},NL:{lat:52.1,lng:5.3},TR:{lat:38.9,lng:35.2},PT:{lat:39.6,lng:-8.2},PL:{lat:51.9,lng:19.1}};
+
+function spawnHotspots(globe,items){
+  globe.removeAllHotspots();
+  window._orbitNews=items;
+  // Group by country
+  const byCountry=new Map();
+  items.forEach(n=>{if(!byCountry.has(n.country))byCountry.set(n.country,[]);byCountry.get(n.country).push(n);});
+  // One hotspot per country
+  byCountry.forEach((arts,country)=>{
+    const cent=CC[country];if(!cent)return;
+    const sorted=[...arts].sort((a,b)=>b.intensity-a.intensity);
+    const top=sorted[0];
+    const avgInt=Math.min(arts.reduce((s,a)=>s+(a.intensity||.5),0)/arts.length*1.2,1.0);
+    const catCounts={};arts.forEach(a=>{catCounts[a.category]=(catCounts[a.category]||0)+1;});
+    const domCat=Object.entries(catCounts).sort((a,b)=>b[1]-a[1])[0][0];
+    const cat=CATS[domCat]||CATS.all;
+    globe.addHotspot({...top,id:`c-${country}`,country,lat:cent.lat,lng:cent.lng,intensity:avgInt,category:domCat,_allNews:arts},cat.c);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════
+async function boot(){
+  setProgress(.05);
+  const canvas=document.getElementById('gc');
+  const globe=new Globe(canvas);
+  window._orbitGlobe=globe;
+  globe.cb.onProgress=p=>setProgress(p*.75+.05);
+  await new Promise(r=>{globe.cb.onReady=r;setTimeout(r,8000);});
+  setProgress(.85);
+
+  // Wire UI
+  globe.cb.onHotspotHover=(data,x,y)=>showTooltip(data.title,FLAGS[data.country]||'🌍',x,y);
+  globe.cb.onHotspotLeave=()=>hideTooltip();
+  globe.cb.onHotspotClick=data=>{
+    const flag=FLAGS[data.country]||'🌍';
+    // Use pre-grouped _allNews from spawnHotspots, or fall back to pool filter
+    const pool=window._orbitNews||NEWS;
+    const cPool=data._allNews||(()=>{const f=pool.filter(n=>n.country===data.country);return f.length?f:pool.slice(0,12);})();
+    let disp=activeCat==='all'?cPool:cPool.filter(n=>n.category===activeCat);
+    if(!disp.length)disp=cPool;
+    const countryName=CNAMES[data.country]||data.country;
+    openPanel(disp,cPool,countryName,`📰 ${cPool.length} noticias`,flag);
+  };
+  globe.cb.onBackgroundClick=()=>{closePanel();hideTooltip();};
+
+  // Fetch live news from Guardian, fallback to demo
+  setProgress(.88);
+  try{
+    const live=await fetchGuardianNews();
+    if(live.length){spawnHotspots(globe,live);console.log(`[ORBIT] ${live.length} live stories`);}
+    else throw new Error('empty');
+    setProgress(.95);
+    // Refresh every 15 min (respects Guardian 500 req/day)
+    setInterval(async()=>{try{const r=await fetchGuardianNews();if(r.length)spawnHotspots(globe,r);}catch(_){}},15*60000);
+  }catch(e){
+    console.warn('[ORBIT] Guardian fallback:',e.message);
+    spawnHotspots(globe,NEWS);
+    setProgress(.95);
+  }
+
+  // Init UI components
+  initSidebar(globe);initTrending();initSearch(globe);initWorldClock();initAIBrief();initProfile();initLangSelector();applyI18n();
+
+  // Panel close
+  document.getElementById('pclose').addEventListener('click',closePanel);
+  document.querySelectorAll('.ntab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');
+      const type=tab.dataset.tab;let items=[...currentNews];
+      if(type==='latest')items.sort((a,b)=>b.timestamp-a.timestamp);
+      if(type==='trending')items.sort((a,b)=>b.intensity-a.intensity);
+      renderCards(items);
+    });
+  });
+
+  // Article modal
+  document.getElementById('abk').addEventListener('click',closeArticle);
+  document.getElementById('aovl').addEventListener('click',closeArticle);
+
+  // Globe controls
+  let autoOn=true;
+  document.getElementById('gc-zi').addEventListener('click',()=>globe.zoomIn());
+  document.getElementById('gc-zo').addEventListener('click',()=>globe.zoomOut());
+  document.getElementById('gc-rs').addEventListener('click',()=>globe.resetView());
+  document.getElementById('gc-ar').addEventListener('click',()=>{autoOn=!autoOn;globe.toggleAuto(autoOn);document.getElementById('gc-ar').classList.toggle('active',autoOn);});
+
+  setProgress(1);
+  await new Promise(r=>setTimeout(r,400));
+
+  // Fade out loading screen
+  const ls=document.getElementById('ls');ls.style.transition='opacity .7s ease';ls.style.opacity='0';
+  setTimeout(()=>ls.classList.add('hidden'),700);
+  document.getElementById('app').classList.remove('hidden');
+
+  // Onboarding
+  initOnboarding();
+  if(!localStorage.getItem('orbit_v1')){
+    document.getElementById('onboarding').classList.remove('hidden');
+  }
+
+  // Intro flyover
+  globe.flyTo(20,10,3.8,2500);
+}
+
+boot().catch(e=>console.error('[ORBIT]',e));
+</script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#07070F" />
+  <title>ORBIT — The Future of News</title>
+  <meta name="description" content="Navigate the world. Discover news. The future of information." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script type="module" crossorigin src="./assets/index-BAkQfUZa.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/three-NOb2UbEV.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-BzIjAfmo.css">
+</head>
+<body>
+
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo">
+        <div class="loading-logo-ring"></div>
+        <span class="loading-logo-text">ORBIT</span>
+      </div>
+      <div class="loading-bar-wrap">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <p class="loading-label" id="loading-label">Initializing globe…</p>
+    </div>
+  </div>
+
+  <!-- ONBOARDING -->
+  <div id="onboarding" class="onboarding hidden">
+    <div class="ob-step active" data-step="1">
+      <div class="ob-logo">
+        <span class="ob-logo-icon">◎</span>
+        <span class="ob-logo-text">ORBIT</span>
+      </div>
+      <h1 class="ob-title" data-i18n="ob_title">The Future of News</h1>
+      <p class="ob-desc" data-i18n="ob_desc">Navigate the world. Discover stories that matter.</p>
+      <button class="ob-btn" id="ob-next-1">
+        <span data-i18n="ob_explore">Explore</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <div class="ob-skip" id="ob-skip" data-i18n="ob_skip">Skip intro</div>
+    </div>
+    <div class="ob-step" data-step="2">
+      <div class="ob-step-badge">01</div>
+      <h2 class="ob-title" data-i18n="ob1_h">Navigate the Globe</h2>
+      <p class="ob-desc" data-i18n="ob1_p">Spin a live 3D Earth. Tap glowing hotspots to explore stories.</p>
+      <div class="ob-features">
+        <div class="ob-feature"><span style="font-size:20px">🌍</span><span>Real-time sun position</span></div>
+        <div class="ob-feature"><span style="font-size:20px">⚡</span><span>Live news pulses</span></div>
+        <div class="ob-feature"><span style="font-size:20px">🔍</span><span>Zoom into any region</span></div>
+      </div>
+      <button class="ob-btn" id="ob-next-2">
+        <span data-i18n="ob_next">Next</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div class="ob-step" data-step="3">
+      <div class="ob-step-badge">02</div>
+      <h2 class="ob-title" data-i18n="ob2_h">Pick Your Interests</h2>
+      <p class="ob-desc" data-i18n="ob2_p">ORBIT's AI learns what you love.</p>
+      <div class="ob-categories-grid">
+        <button class="ob-cat selected">⚽ <span data-i18n="cat_sports">Sports</span></button>
+        <button class="ob-cat selected">💻 <span data-i18n="cat_tech">Technology</span></button>
+        <button class="ob-cat">🏛️ <span data-i18n="cat_politics">Politics</span></button>
+        <button class="ob-cat selected">🎬 <span data-i18n="cat_entertainment">Entertainment</span></button>
+        <button class="ob-cat">🔬 <span data-i18n="cat_science">Science</span></button>
+        <button class="ob-cat">📈 <span data-i18n="cat_finance">Finance</span></button>
+        <button class="ob-cat selected">🎮 Gaming</button>
+        <button class="ob-cat">🎵 <span data-i18n="cat_music">Music</span></button>
+      </div>
+      <button class="ob-btn" id="ob-next-3">
+        <span data-i18n="ob_continue">Continue</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div class="ob-step" data-step="4">
+      <div class="ob-ready-icon">◎</div>
+      <h2 class="ob-title" data-i18n="ob3_h">Your World Awaits</h2>
+      <p class="ob-desc" data-i18n="ob3_p">Everything happening on Earth, beautifully visualized for you.</p>
+      <button class="ob-btn ob-btn-launch" id="ob-launch">
+        <span data-i18n="ob_launch">Launch ORBIT</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div class="ob-dots">
+      <span class="ob-dot active"></span><span class="ob-dot"></span>
+      <span class="ob-dot"></span><span class="ob-dot"></span>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app" class="app hidden">
+    <canvas id="globe-canvas"></canvas>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-logo">
+          <span class="topbar-logo-icon">◎</span>
+          <span class="topbar-logo-text">ORBIT</span>
+        </div>
+      </div>
+      <div class="topbar-center">
+        <div class="search-wrap" id="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" id="search-input" type="text" data-i18n-ph="search_ph" placeholder="Search news, topics…" autocomplete="off"/>
+          <div class="search-results" id="search-results"></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <!-- AI Brief: icon only on mobile, icon+text on desktop -->
+        <button class="topbar-btn" id="btn-ai-summary" title="AI Brief">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span class="tb-txt" data-i18n="ai_brief">AI Brief</span>
+        </button>
+
+        <!-- Language selector — single, always topbar -->
+        <div class="lang-selector-wrap" id="lang-selector-wrap">
+          <button class="topbar-icon-btn lang-btn" id="btn-lang" title="Language">
+            🇬🇧 <span style="font-size:10px;font-weight:700;margin-left:2px">EN</span>
+          </button>
+          <div class="lang-dropdown" id="lang-dropdown"></div>
+        </div>
+
+        <button class="topbar-icon-btn" id="btn-profile">
+          <div class="avatar">N</div>
+        </button>
+      </div>
+    </header>
+
+    <!-- CATEGORY SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section-label" data-i18n="lbl_categories">CATEGORIES</div>
+      <!-- 5 focused categories = denser, more alive world -->
+      <nav class="sidebar-nav" id="sidebar-nav">
+        <button class="sidebar-item active" data-category="all">         <span class="sidebar-item-icon">🌐</span><span class="sidebar-item-label" data-i18n="cat_all">All</span><span class="sidebar-item-count" id="cnt-all">—</span></button>
+        <button class="sidebar-item" data-category="sports">             <span class="sidebar-item-icon">⚽</span><span class="sidebar-item-label" data-i18n="cat_sports">Sports</span><span class="sidebar-item-count" id="cnt-sports">—</span></button>
+        <button class="sidebar-item" data-category="entertainment">      <span class="sidebar-item-icon">🎬</span><span class="sidebar-item-label" data-i18n="cat_entertainment">Entertainment</span><span class="sidebar-item-count" id="cnt-entertainment">—</span></button>
+        <button class="sidebar-item" data-category="gaming">             <span class="sidebar-item-icon">🎮</span><span class="sidebar-item-label" data-i18n="cat_gaming">Gaming</span><span class="sidebar-item-count" id="cnt-gaming">—</span></button>
+        <button class="sidebar-item" data-category="technology">         <span class="sidebar-item-icon">💻</span><span class="sidebar-item-label" data-i18n="cat_tech">Technology</span><span class="sidebar-item-count" id="cnt-technology">—</span></button>
+        <button class="sidebar-item" data-category="world">              <span class="sidebar-item-icon">🌍</span><span class="sidebar-item-label" data-i18n="cat_world">World</span><span class="sidebar-item-count" id="cnt-world">—</span></button>
+        <button class="sidebar-item" data-category="trending">           <span class="sidebar-item-icon">🔥</span><span class="sidebar-item-label" data-i18n="cat_trending">Trending</span><span class="sidebar-item-count" id="cnt-trending">—</span></button>
+      </nav>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label" data-i18n="lbl_live">LIVE</div>
+      <div class="sidebar-live"><div class="live-dot"></div><span id="live-count" data-i18n="lbl_live_text">stories updating</span></div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label" data-i18n="lbl_world_time">WORLD TIME</div>
+      <div class="world-clock">
+        <div class="clock-row"><span class="clock-city">NYC</span><span class="clock-time" id="clk-nyc">—</span></div>
+        <div class="clock-row"><span class="clock-city">LON</span><span class="clock-time" id="clk-lon">—</span></div>
+        <div class="clock-row"><span class="clock-city">TKY</span><span class="clock-time" id="clk-tky">—</span></div>
+        <div class="clock-row"><span class="clock-city">DXB</span><span class="clock-time" id="clk-dxb">—</span></div>
+      </div>
+    </aside>
+
+    <!-- NEWS PANEL -->
+    <section class="news-panel" id="news-panel">
+      <!-- ── COUNTRY HUB HEADER ── -->
+      <div class="hub-header">
+        <div class="hub-flag-name">
+          <div class="hub-flag" id="panel-flag">🌍</div>
+          <div>
+            <div class="hub-country" id="panel-country">World</div>
+            <div class="hub-meta">
+              <div class="live-dot small"></div>
+              <span id="panel-subtitle">loading…</span>
+            </div>
+          </div>
+        </div>
+        <button class="hub-close" id="news-panel-close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- ── ACTIVITY BAR (visual density indicator) ── -->
+      <div class="hub-activity-bar" id="hub-activity-bar"></div>
+
+      <!-- ── CATEGORY FILTER (lives INSIDE the country hub) ── -->
+      <div class="hub-cats" id="hub-cats">
+        <button class="hub-cat active" data-cat="all">🌐 All</button>
+        <button class="hub-cat" data-cat="sports">⚽ <span data-i18n="cat_sports">Sports</span></button>
+        <button class="hub-cat" data-cat="entertainment">🎬 <span data-i18n="cat_entertainment">Entertainment</span></button>
+        <button class="hub-cat" data-cat="gaming">🎮 <span data-i18n="cat_gaming">Gaming</span></button>
+        <button class="hub-cat" data-cat="technology">💻 <span data-i18n="cat_tech">Tech</span></button>
+        <button class="hub-cat" data-cat="world">🌍 <span data-i18n="cat_world">World</span></button>
+        <button class="hub-cat" data-cat="trending">🔥 <span data-i18n="cat_trending">Trending</span></button>
+      </div>
+
+      <!-- ── SORT TABS (Top / Latest / For You) ── -->
+      <div class="hub-sort-tabs">
+        <button class="hub-sort active" data-sort="top"     data-i18n="tab_top">Top</button>
+        <button class="hub-sort"        data-sort="latest"  data-i18n="tab_latest">Latest</button>
+        <button class="hub-sort"        data-sort="foryou"  style="color:#00D4FF">✦ For You</button>
+      </div>
+
+      <div class="news-cards-container" id="news-cards-container"></div>
+    </section>
+
+    <!-- TRENDING BAR -->
+    <div class="trending-bar">
+      <div class="trending-label"><div class="live-dot small"></div><span data-i18n="lbl_trending">TRENDING</span></div>
+      <div class="trending-scroll"><div class="trending-inner" id="trending-scroll"></div></div>
+    </div>
+
+    <!-- GLOBE CONTROLS -->
+    <div class="globe-controls">
+      <button class="globe-ctrl-btn" id="btn-zoom-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="globe-ctrl-btn" id="btn-zoom-out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+      <button class="globe-ctrl-btn" id="btn-reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button class="globe-ctrl-btn active" id="btn-autorotate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg></button>
+    </div>
+
+    <!-- TOOLTIP -->
+    <div class="country-tooltip" id="country-tooltip">
+      <span class="tooltip-flag" id="tooltip-flag"></span>
+      <span class="tooltip-name" id="tooltip-name"></span>
+    </div>
+
+    <!-- AI BRIEF PANEL -->
+    <div class="ai-panel hidden" id="ai-panel">
+      <div class="ai-panel-header">
+        <div class="ai-panel-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span data-i18n="ai_daily">AI Daily Brief</span>
+        </div>
+        <button class="ai-panel-close" id="ai-panel-close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="ai-panel-content" id="ai-panel-content"></div>
+    </div>
+
+    <!-- PROFILE PANEL -->
+    <div class="profile-panel hidden" id="profile-panel">
+      <div class="profile-header">
+        <div class="profile-avatar">N</div>
+        <div>
+          <div class="profile-name">News Explorer</div>
+          <div class="profile-plan" data-i18n="profile_free">ORBIT Free</div>
+        </div>
+        <button class="ai-panel-close" id="profile-panel-close" style="margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="profile-upgrade">
+        <div class="upgrade-badge">⚡ ORBIT PRO</div>
+        <p data-i18n="upgrade_text">Unlock AI summaries, no ads, and exclusive sources</p>
+        <button class="upgrade-btn" data-i18n="upgrade_btn">Upgrade — $4.99/mo</button>
+      </div>
+      <div class="profile-stats">
+        <div class="stat-item"><span class="stat-num">127</span><span class="stat-lbl" data-i18n="profile_read">Read</span></div>
+        <div class="stat-item"><span class="stat-num">23</span><span class="stat-lbl" data-i18n="profile_saved">Saved</span></div>
+        <div class="stat-item"><span class="stat-num">8</span><span class="stat-lbl" data-i18n="profile_countries">Countries</span></div>
+      </div>
+    </div>
+
+    <!-- ARTICLE MODAL -->
+    <div class="article-modal hidden" id="article-modal">
+      <div class="article-modal-overlay" id="article-modal-overlay"></div>
+      <div class="article-modal-content">
+        <div class="article-modal-header">
+          <button class="article-back" id="article-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span data-i18n="back">Back</span>
+          </button>
+          <div class="article-actions">
+            <button class="article-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <button class="article-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+          </div>
+        </div>
+        <div class="article-body" id="article-body"></div>
+      </div>
+    </div>
+
+    <!-- MOBILE CATEGORY CHIPS — 5 focused categories -->
+    <div class="mobile-cats" id="mobile-cats">
+      <button class="mobile-cat active" data-category="all">          🌐 <span data-i18n="cat_all">All</span></button>
+      <button class="mobile-cat" data-category="sports">              ⚽ <span data-i18n="cat_sports">Sports</span></button>
+      <button class="mobile-cat" data-category="entertainment">       🎬 <span data-i18n="cat_entertainment">Entertainment</span></button>
+      <button class="mobile-cat" data-category="gaming">              🎮 <span data-i18n="cat_gaming">Gaming</span></button>
+      <button class="mobile-cat" data-category="technology">          💻 <span data-i18n="cat_tech">Tech</span></button>
+      <button class="mobile-cat" data-category="world">               🌍 <span data-i18n="cat_world">World</span></button>
+      <button class="mobile-cat" data-category="trending">            🔥 <span data-i18n="cat_trending">Trending</span></button>
+    </div>
+
+  </div><!-- end #app -->
+
+</body>
+</html>

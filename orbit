@@ -1,0 +1,138 @@
+Nombre de marca: Orbit
+
+1. Nombre de marca
+- Orbit: la plataforma de noticias del futuro construida alrededor del mundo como interfaz.
+
+2. Concepto visual
+- Un planeta Tierra 3D hiperrealista como dashboard central.
+- Base visual sobre la imagen realista de la Tierra de la NASA, enriquecida como si fuera Google Earth y Google Maps con zoom cinematográfico.
+- Interfaz dark mode cinematográfico, glassmorphism y capas flotantes con reflejos, partículas y efectos de profundidad.
+
+3. Identidad de marca
+- Claim: “Las noticias del futuro”.
+- Voz: sofisticada, dinámica y confiable.
+- Personalidad: premium, tecnológica, emocional y social.
+- Iconografía: orbes, anillos, pulsos, hotspots y hologramas.
+
+4. Diseño UX completo
+- Inicio: vista global del planeta con rotación suave y transición día/noche en tiempo real.
+- Exploración: tocar países, zoom libre, arrastrar, mirar hotspots y noticias geolocalizadas.
+- Feed: no es lista; es un mapa de pulso global con líneas de energía, hologramas y ondas luminosas.
+- Personalización: selección de intereses en onboarding y ajuste continuo via IA.
+
+5. Arquitectura del producto
+- Capa 1: Mundo 3D interactivo.
+- Capa 2: Feed inteligente personalizado.
+- Capa 3: Social ligero y comunidad.
+- Capa 4: IA resumen, traducción y contexto.
+
+6. Diseño de navegación
+- Barra mínima inferior: Mundo / Explorar / Reels / Favoritos / Perfil.
+- Modo inmersivo: botón central para volver al planeta.
+- Atajos contextuales: país, categoría, tendencias globales.
+
+7. Sistema social
+- Reacciones rápidas: pulsos, auroras, comentarios cortos y stickers dinámicos.
+- Compartir: clips, fotos del globo, resúmenes de noticias y stories de evento.
+- Comunidad: perfiles, reputación de medios, ranking de temas virales.
+
+8. Ideas virales
+- Retos geo-temáticos: descubrir el hotspot del día.
+- Digestos diarios tipo “Orbital Flash” con audio y visuales.
+- Compartir tu mapa de intereses y torque global.
+
+9. Estrategia Gen Z
+- Short-form visual, motion design rápido, edición vertical estilo reels.
+- Contenido emocional, memes de actualidad y micro historias.
+- Notificaciones suaves, haptics y sonidos premium.
+
+10. Moodboard textual
+- Futurismo elegante, cosmos digital, atlas viviente, tech noir y luz de estudio.
+- Inspiraciones: Apple Vision Pro, Interstellar, Arc Browser, Spotify Wrapped.
+
+11. Paleta de colores
+- Azul noche profundo #0A1425
+- Cian eléctrico #42E7FF
+- Blanco perlado #F4F8FF
+- Violeta UV #8F7DFF
+- Oro suave #F5C66B
+
+12. Tipografías
+- Titulares: una sans geométrica moderna con carácter premium.
+- Cuerpo: legible, minimalista y con buen espaciado para mobile.
+- Acabados: italic ligero para segmentos emocionales.
+
+13. Animaciones
+- Rotación lenta del planeta con parallax de atmósfera.
+- Hotspots emergentes con pulsos, partículas y ondas energéticas.
+- Transición día/noche con gradientes suaves y luces nocturnas.
+- Zoom dinámico que revela capas de noticias y clima visual.
+
+14. Diseño del planeta
+- Tierra hiperrealista con nubes dinámicas, luces nocturnas, océanos vivos, atmósfera realista, reflejos y auroras.
+- Sol en tiempo real: el planeta muestra día/noche según el horario real.
+- Datos de clima visual y partículas que representan tendencias y “hotspots”.
+
+15. Interacciones clave
+- Tocar un país revela tendencias locales con hologramas y leyendas energéticas.
+- Pulsar un hotspot abre un resumen de noticia visual y audio.
+- Zoom profundo revela capas de contenido: deporte, tecnología, cultura, crypto.
+- Swipe vertical para modo reels, swipe horizontal para timeline global.
+
+16. Wireframes explicados
+- Pantalla principal: globo + panel inferior con categoría seleccionada.
+- Explorar: lista radial de hotspots y filtros por intereses.
+- Perfil: intereses, suscripciones, historial y reputación.
+- Reels: scroll vertical con cápsulas de noticias visuales.
+
+17. Landing page
+- Hero con el planeta Orbit flotando, CTA “Explorar el futuro”.
+- Secciones: experiencia 3D, personalización, social, IA, comunidad.
+- Visuales: clips de interacción, ejemplo de hotspots, resumen de beneficios.
+
+18. Estrategia de crecimiento
+- Lanzamiento con clubes universitarios y creadores de contenido.
+- Campañas sociales: “Tu mundo, tu feed” + retos de descubrimiento.
+- Asociaciones con medios premium y eventos en vivo.
+
+19. Roadmap
+- Fase 1: MVP con globo interactivo y feed personalizado.
+- Fase 2: social ligero, audio resumen, traducción instantánea.
+- Fase 3: live events, ranking viral, reputación de medios.
+- Fase 4: expansión global, avatars, modos AR/VR.
+
+20. Stack tecnológico
+- Frontend: React Native / Flutter con Three.js o Babylon.js para 3D.
+- Backend: Node.js / Go, microservicios, GraphQL.
+- Motor 3D: WebGL + custom shaders para atmósfera, nubes, océanos.
+- IA: modelos de recomendación, resumen y traducción en tiempo real.
+- APIs: noticias globales, datos de clima, geolocalización y hora mundial.
+- Infraestructura: Kubernetes, CDN, streaming de datos en tiempo real.
+
+21. Ideas futuristas
+- Modo “explica fácil” con IA que resume en lenguaje Gen Z.
+- Timeline histórica interactivo sobre el globo.
+- Comparador de perspectivas: noticias de varios países en paralelo.
+
+22. Diferenciación frente a apps tradicionales
+- No es un periódico: es un mundo interactivo.
+- Noticias como descubrimiento visual, no lista estática.
+- IA emocional y experiencia gamificada.
+
+23. Cómo convertir noticias en entretenimiento visual inteligente
+- Hotspots animados, señales luminosas y hologramas.
+- Audio resumen estilo podcast integrado con cada historia.
+- Visualizaciones contextuales por país y categoría.
+
+24. Cómo hacer que jóvenes vuelvan cada día
+- Feed que aprende intereses.
+- Eventos diarios y recomendaciones basadas en ubicación global.
+- Notificaciones inteligentes y contenido exclusivo premium.
+
+25. Diseño pensado para volverse icónico globalmente
+- Identidad fuerte, narrative de “el mundo como interfaz”.
+- UI premium, motion design y branding consistente.
+- Experiencia memorable con una Tierra viva como protagonista.
+
+Resumen
+Orbit es la propuesta de una startup unicornio de medios que reimagina la actualidad como un planeta interactivo, utilizando la imagen NASA de la Tierra como base para un globo que combina la estética de Google Earth con la emoción de videojuegos AAA y el diseño premium de productos tecnológicos de nueva generación.

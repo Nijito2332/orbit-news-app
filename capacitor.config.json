@@ -1,0 +1,21 @@
+{
+  "appId": "com.orbit.news",
+  "appName": "ORBIT",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#07070F",
+      "overlaysWebView": true
+    },
+    "SplashScreen": {
+      "launchShowDuration": 2500,
+      "launchAutoHide": true,
+      "backgroundColor": "#07070F",
+      "showSpinner": false
+    }
+  }
+}

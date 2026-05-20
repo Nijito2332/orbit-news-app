@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(python --version 2>&1)",
+      "PowerShell(python3 --version 2>&1)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); Set-Location \"c:\\\\Users\\\\nijit\\\\ORBIT\"; npx cap add android 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); Set-Location \"c:\\\\Users\\\\nijit\\\\ORBIT\"; npx cap sync android 2>&1 | Select-Object -Last 15)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); Set-Location \"c:\\\\Users\\\\nijit\\\\ORBIT\"; npx cap add ios 2>&1 | Select-Object -Last 10)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); Get-ChildItem \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\bin\" -ErrorAction SilentlyContinue | Select-Object Name | Select-Object -First 5; Get-ItemProperty \"HKLM:\\\\SOFTWARE\\\\Android Studio\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-ChildItem \"$env:LOCALAPPDATA\\\\JetBrains\\\\Toolbox\\\\apps\" -ErrorAction SilentlyContinue | Select-Object Name | Select-Object -First 10; Get-ChildItem \"$env:USERPROFILE\\\\AppData\\\\Local\\\\Android\" -ErrorAction SilentlyContinue | Select-Object Name | Select-Object -First 5)",
+      "PowerShell(winget install Google.AndroidStudio --accept-source-agreements --accept-package-agreements 2>&1)"
+    ]
+  }
+}
