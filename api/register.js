@@ -13,8 +13,13 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Server config missing. Check SUPABASE_URL and SUPABASE_SERVICE_KEY env vars.' });
   }
 
-  const { email, password, name = '', daily_brief = true, email_language = 'es' } = req.body || {};
+  const VALID_LANGS = new Set(['es', 'en', 'fr', 'de']);
+  const { email, password, daily_brief = true } = req.body || {};
+  const name          = String(req.body?.name || '').slice(0, 80);
+  const email_language = VALID_LANGS.has(req.body?.email_language) ? req.body.email_language : 'es';
   if (!email || !password) return res.status(400).json({ error: 'Email y contrasena requeridos' });
+  if (typeof email !== 'string' || email.length > 254) return res.status(400).json({ error: 'Email inválido' });
+  if (typeof password !== 'string' || password.length < 6) return res.status(400).json({ error: 'Contraseña demasiado corta' });
 
   const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' };
 

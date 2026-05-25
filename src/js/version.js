@@ -4,9 +4,22 @@
  * Bump VERSION on every meaningful deploy.
  */
 
-export const VERSION = '0.4.2';
+export const VERSION = '0.4.3';
 
 export const CHANGELOG = [
+  {
+    version: '0.4.3',
+    date:    '2026-05-25',
+    emoji:   '🔐',
+    title:   'Seguridad + Idioma de Email',
+    items: [
+      'Selector de idioma de email en registro y perfil (ES/EN/FR/DE)',
+      'Headers de seguridad: HSTS, X-Frame-Options, nosniff',
+      'Rate limiting en endpoints de login/registro',
+      'Endpoints de admin protegidos con clave secreta',
+      'Whitelist de campos en actualizaciones de perfil',
+    ],
+  },
   {
     version: '0.4.2',
     date:    '2026-05-22',

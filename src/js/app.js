@@ -512,7 +512,7 @@ function _showChangelog() {
         ${latest.items.map(item => `
           <li style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.5">
             <span style="color:#00D4FF;flex-shrink:0;margin-top:1px">✓</span>
-            <span>${item}</span>
+            <span>${String(item).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</span>
           </li>
         `).join('')}
       </ul>
