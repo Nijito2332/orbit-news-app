@@ -105,6 +105,7 @@ function _initAuthWall() {
   const tabs    = wall.querySelectorAll('.aw-tab');
   const nameIn  = document.getElementById('aw-name');
   const briefRow= document.getElementById('aw-brief-row');
+  const langRow = document.getElementById('aw-lang-row');
   const submit  = document.getElementById('aw-submit');
   const submitTxt = document.getElementById('aw-submit-text');
   const errEl   = document.getElementById('aw-error');
@@ -117,11 +118,13 @@ function _initAuthWall() {
     if (m === 'login') {
       nameIn?.classList.add('hidden');
       briefRow?.classList.add('hidden');
+      if (langRow) langRow.style.display = 'none';
       submitTxt.textContent = 'Entrar';
       document.getElementById('aw-pass').setAttribute('autocomplete','current-password');
     } else {
       nameIn?.classList.remove('hidden');
       briefRow?.classList.remove('hidden');
+      if (langRow) langRow.style.display = '';
       submitTxt.textContent = 'Crear cuenta gratis';
       document.getElementById('aw-pass').setAttribute('autocomplete','new-password');
     }
@@ -131,12 +134,20 @@ function _initAuthWall() {
 
   tabs.forEach(tab => tab.addEventListener('click', () => setMode(tab.dataset.tab)));
 
+  wall.querySelectorAll('.aw-lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      wall.querySelectorAll('.aw-lang-btn').forEach(b => delete b.dataset.selected);
+      btn.dataset.selected = 'true';
+    });
+  });
+
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const email    = document.getElementById('aw-email').value.trim();
     const password = document.getElementById('aw-pass').value;
-    const name     = document.getElementById('aw-name')?.value?.trim() || '';
-    const brief    = document.getElementById('aw-brief')?.checked ?? true;
+    const name      = document.getElementById('aw-name')?.value?.trim() || '';
+    const brief     = document.getElementById('aw-brief')?.checked ?? true;
+    const emailLang = wall.querySelector('.aw-lang-btn[data-selected]')?.dataset.lang || 'es';
 
     submit.disabled = true;
     submitTxt.textContent = '...';
@@ -147,7 +158,7 @@ function _initAuthWall() {
       if (mode === 'login') {
         await login({ email, password });
       } else {
-        const result = await register({ email, password, name, daily_brief: brief });
+        const result = await register({ email, password, name, daily_brief: brief, email_language: emailLang });
         if (result.requiresLogin) {
           succEl.textContent = 'Cuenta creada. Inicia sesión.';
           succEl.classList.remove('hidden');

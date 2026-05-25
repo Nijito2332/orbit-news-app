@@ -169,6 +169,10 @@
 .aw-submit:disabled { opacity: .5; cursor: default; transform: none; }
 
 .aw-disclaimer { font-size: 10.5px; color: rgba(255,255,255,.22); line-height: 1.5; }
+.aw-lang-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.32); margin-bottom: 7px; }
+.aw-lang-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.aw-lang-btn   { padding: 8px 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.5); cursor: pointer; font-family: inherit; transition: all .15s; }
+.aw-lang-btn[data-selected] { background: rgba(0,212,255,.15); border-color: rgba(0,212,255,.4); color: #00D4FF; }
 .aw-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .aw-pill  {
   padding: 5px 12px; border-radius: 99px;
