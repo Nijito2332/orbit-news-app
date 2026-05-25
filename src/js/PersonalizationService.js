@@ -7,9 +7,9 @@ const KEY   = 'orbit_profile_v2';
 const READS = 'orbit_reads_v2';
 
 const DEFAULT_PROFILE = {
-  name:              'World Explorer',
+  name:              '',
   avatar:            null,
-  categories:        ['sports', 'technology', 'politics'],
+  categories:        ['sports', 'technology', 'world'],
   followedCountries: [],
   language:          'en',
   notifications:     true,
@@ -18,8 +18,10 @@ const DEFAULT_PROFILE = {
 
 // ─── Read / Write ─────────────────────────────────────────────────────────────
 export function getProfile() {
-  try { return { ...DEFAULT_PROFILE, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
-  catch(_) { return { ...DEFAULT_PROFILE }; }
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+    return { ...DEFAULT_PROFILE, ...saved };
+  } catch(_) { return { ...DEFAULT_PROFILE }; }
 }
 
 export function saveProfile(updates) {

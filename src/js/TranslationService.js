@@ -63,7 +63,9 @@ async function translateMyMemory(text, targetLang, signal) {
 
 // ─── Single text translation with cache ──────────────────────────────────────
 export async function translateText(text, targetLang) {
-  if (!text || !text.trim() || targetLang === 'en') return text;
+  // Guard: don't translate null, undefined, empty or suspiciously short strings
+  if (!text || typeof text !== 'string' || !text.trim() || text.trim().length < 4) return '';
+  if (targetLang === 'en') return text;
 
   // Normalize lang codes for Google
   const gtLang = { 'zh': 'zh-CN', 'pt': 'pt-BR' }[targetLang] || targetLang;
@@ -95,12 +97,14 @@ export async function translateText(text, targetLang) {
 export async function translateNews(items, targetLang) {
   if (targetLang === 'en' || !items?.length) return items;
 
-  const CONCURRENCY = 4;
-  const result = [...items];
+  const CONCURRENCY = 3;  // lower concurrency = fewer rate limit errors
+  const result = items.map(item => ({ ...item }));  // always copy all items first
 
   for (let i = 0; i < result.length; i += CONCURRENCY) {
     const batch = result.slice(i, i + CONCURRENCY);
     await Promise.all(batch.map(async (item, j) => {
+      // Skip articles already in target language
+      if ((item.lang || 'en') === targetLang) return;
       try {
         const [title, summary] = await Promise.all([
           translateText(item.title || '', targetLang),

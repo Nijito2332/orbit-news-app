@@ -3,14 +3,18 @@
 //  5 focused categories (not 10+) = denser, alive, premium
 // ════════════════════════════════════════════════════════
 
+// ORBIT color palette — coherent, space/tech aesthetic
+// All hotspot colors in the blue/cyan/purple family so the globe looks premium
+// Hotspot colors: single cyan family — clean, unified, premium
+// Category distinction shown in cards/panel, not on the globe dot
 export const CATEGORIES = {
-  all:           { label:'All',          color:'#00D4FF', bg:'rgba(0,212,255,0.12)',  icon:'🌐' },
-  sports:        { label:'Sports',       color:'#00D4FF', bg:'rgba(0,212,255,0.12)',  icon:'⚽' },
-  entertainment: { label:'Entertainment',color:'#FBBF24', bg:'rgba(251,191,36,0.12)', icon:'🎬' },
-  gaming:        { label:'Gaming',       color:'#A3E635', bg:'rgba(163,230,53,0.12)', icon:'🎮' },
-  technology:    { label:'Technology',   color:'#A78BFA', bg:'rgba(167,139,250,0.12)',icon:'💻' },
-  world:         { label:'World',        color:'#FB923C', bg:'rgba(251,146,60,0.12)', icon:'🌍' },
-  trending:      { label:'Trending',     color:'#FF4757', bg:'rgba(255,71,87,0.12)',  icon:'🔥' },
+  all:           { label:'All',          color:'#00D4FF', bg:'rgba(0,212,255,0.12)',   icon:'🌐' },
+  world:         { label:'World',        color:'#00D4FF', bg:'rgba(0,212,255,0.12)',   icon:'🌍' },
+  sports:        { label:'Sports',       color:'#00D4FF', bg:'rgba(0,212,255,0.12)',   icon:'⚽' },
+  technology:    { label:'Technology',   color:'#818CF8', bg:'rgba(129,140,248,0.12)', icon:'💻' },
+  gaming:        { label:'Gaming',       color:'#2DD4BF', bg:'rgba(45,212,191,0.12)',  icon:'🎮' },
+  entertainment: { label:'Entertainment',color:'#00D4FF', bg:'rgba(0,212,255,0.12)',   icon:'🎬' },
+  trending:      { label:'Trending',     color:'#00D4FF', bg:'rgba(0,212,255,0.12)',   icon:'🔥' },
 };
 
 export const COUNTRY_FLAGS = {

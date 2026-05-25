@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -16,8 +16,79 @@
 </head>
 <body>
 
+  <!-- ═══════ AUTH WALL ═══════ -->
+  <div id="auth-wall">
+    <div class="aw-stars"></div>
+    <!-- Left panel: branding + form -->
+    <div class="aw-left">
+      <div class="aw-logo">
+        <span class="aw-logo-icon">◎</span>
+        <span class="aw-logo-text">ORBIT</span>
+      </div>
+
+      <div class="aw-hero">
+        <h1 class="aw-title">Las noticias<br>del <span class="aw-grad">futuro</span></h1>
+        <p class="aw-sub">Navega un planeta Tierra 3D en tiempo real. Descubre lo que ocurre ahora mismo en cualquier rincón del mundo.</p>
+      </div>
+
+      <!-- Form -->
+      <form id="aw-form" class="aw-form" data-mode="register">
+        <div class="aw-tabs">
+          <button type="button" class="aw-tab active" data-tab="register">Crear cuenta</button>
+          <button type="button" class="aw-tab" data-tab="login">Iniciar sesión</button>
+        </div>
+
+        <input id="aw-name"  class="aw-input" type="text"     placeholder="Tu nombre"                 autocomplete="name"/>
+        <input id="aw-email" class="aw-input" type="email"    placeholder="Email"    required          autocomplete="email"/>
+        <input id="aw-pass"  class="aw-input" type="password" placeholder="Contraseña (mín. 6 chars)" required autocomplete="new-password"/>
+
+        <label class="aw-brief-label" id="aw-brief-row">
+          <input type="checkbox" id="aw-brief" checked/>
+          <span>Recibir Daily Brief a las 20:00 con las noticias del día</span>
+        </label>
+
+        <div class="aw-error hidden" id="aw-error"></div>
+        <div class="aw-success hidden" id="aw-success"></div>
+
+        <button type="submit" class="aw-submit" id="aw-submit">
+          <span id="aw-submit-text">Crear cuenta gratis</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </form>
+
+      <p class="aw-disclaimer">Al continuar aceptas los Términos de uso y la Política de privacidad de ORBIT.</p>
+
+      <!-- Features pills -->
+      <div class="aw-pills">
+        <span class="aw-pill">🌍 Globo 3D en vivo</span>
+        <span class="aw-pill">📰 800+ fuentes</span>
+        <span class="aw-pill">🌐 4 idiomas</span>
+        <span class="aw-pill">📧 Daily Brief 20:00</span>
+      </div>
+    </div>
+
+    <!-- Right panel: CSS animated globe (independent of Three.js) -->
+    <div class="aw-right">
+
+      <!-- Real NASA night-lights photo globe -->
+      <div class="aw-photo-globe"></div>
+
+      <!-- Floating cards -->
+      <div class="aw-card aw-card-1">
+        <div class="aw-card-cat">⚽ Deportes · Madrid</div>
+        <div class="aw-card-title">Champions League Final: el mundo se detiene</div>
+        <div class="aw-card-meta">Marca · 2h ago</div>
+      </div>
+      <div class="aw-card aw-card-2">
+        <div class="aw-card-cat">💻 Tecnología · San Francisco</div>
+        <div class="aw-card-title">OpenAI anuncia el modelo más avanzado de la historia</div>
+        <div class="aw-card-meta">The Verge · 1h ago</div>
+      </div>
+    </div>
+  </div>
+
   <!-- LOADING SCREEN -->
-  <div id="loading-screen" class="loading-screen">
+  <div id="loading-screen" class="loading-screen hidden">
     <div class="loading-content">
       <div class="loading-logo">
         <div class="loading-logo-ring"></div>
@@ -63,15 +134,14 @@
       <div class="ob-step-badge">02</div>
       <h2 class="ob-title" data-i18n="ob2_h">Pick Your Interests</h2>
       <p class="ob-desc" data-i18n="ob2_p">ORBIT's AI learns what you love.</p>
+      <!-- 5 categories — matches the real app exactly, no duplicates -->
       <div class="ob-categories-grid">
         <button class="ob-cat selected">⚽ <span data-i18n="cat_sports">Sports</span></button>
-        <button class="ob-cat selected">💻 <span data-i18n="cat_tech">Technology</span></button>
-        <button class="ob-cat">🏛️ <span data-i18n="cat_politics">Politics</span></button>
         <button class="ob-cat selected">🎬 <span data-i18n="cat_entertainment">Entertainment</span></button>
-        <button class="ob-cat">🔬 <span data-i18n="cat_science">Science</span></button>
-        <button class="ob-cat">📈 <span data-i18n="cat_finance">Finance</span></button>
-        <button class="ob-cat selected">🎮 Gaming</button>
-        <button class="ob-cat">🎵 <span data-i18n="cat_music">Music</span></button>
+        <button class="ob-cat selected">🎮 <span data-i18n="cat_gaming">Gaming</span></button>
+        <button class="ob-cat selected">💻 <span data-i18n="cat_tech">Technology</span></button>
+        <button class="ob-cat">🌍 <span data-i18n="cat_world">World</span></button>
+        <button class="ob-cat">🔥 <span data-i18n="cat_trending">Trending</span></button>
       </div>
       <button class="ob-btn" id="ob-next-3">
         <span data-i18n="ob_continue">Continue</span>
@@ -114,9 +184,9 @@
       </div>
       <div class="topbar-right">
         <!-- AI Brief: icon only on mobile, icon+text on desktop -->
-        <button class="topbar-btn" id="btn-ai-summary" title="AI Brief">
+        <button class="topbar-btn" id="btn-ai-summary" title="Resumen Diario">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span class="tb-txt" data-i18n="ai_brief">AI Brief</span>
+          <span class="tb-txt" data-i18n="ai_brief">Resumen</span>
         </button>
 
         <!-- Language selector — single, always topbar -->
@@ -126,6 +196,11 @@
           </button>
           <div class="lang-dropdown" id="lang-dropdown"></div>
         </div>
+
+        <button class="topbar-btn orbit-plus-topbar-btn" id="btn-orbit-plus" title="ORBIT+">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span class="tb-txt">ORBIT+</span>
+        </button>
 
         <button class="topbar-icon-btn" id="btn-profile">
           <div class="avatar">N</div>
@@ -150,12 +225,49 @@
       <div class="sidebar-section-label" data-i18n="lbl_live">LIVE</div>
       <div class="sidebar-live"><div class="live-dot"></div><span id="live-count" data-i18n="lbl_live_text">stories updating</span></div>
       <div class="sidebar-divider"></div>
-      <div class="sidebar-section-label" data-i18n="lbl_world_time">WORLD TIME</div>
-      <div class="world-clock">
-        <div class="clock-row"><span class="clock-city">NYC</span><span class="clock-time" id="clk-nyc">—</span></div>
-        <div class="clock-row"><span class="clock-city">LON</span><span class="clock-time" id="clk-lon">—</span></div>
-        <div class="clock-row"><span class="clock-city">TKY</span><span class="clock-time" id="clk-tky">—</span></div>
-        <div class="clock-row"><span class="clock-city">DXB</span><span class="clock-time" id="clk-dxb">—</span></div>
+      <!-- Version badge — always visible -->
+      <div class="sidebar-version-badge" id="sidebar-version">
+        <span class="svb-dot"></span>
+        <span class="svb-label">ORBIT <span id="svb-num">v1.4</span></span>
+        <span class="svb-status">EN VIVO</span>
+      </div>
+
+      <div class="sidebar-section-label" data-i18n="lbl_world_time">GLOBAL TIME</div>
+      <div class="world-clock terminal-clock">
+        <div class="clock-row" id="clk-row-nyc">
+          <span class="clock-market-dot" id="mkt-nyc"></span>
+          <span class="clock-city">NYC</span>
+          <span class="clock-time" id="clk-nyc">—</span>
+          <span class="clock-tz">EST</span>
+        </div>
+        <div class="clock-row" id="clk-row-lon">
+          <span class="clock-market-dot" id="mkt-lon"></span>
+          <span class="clock-city">LON</span>
+          <span class="clock-time" id="clk-lon">—</span>
+          <span class="clock-tz">GMT</span>
+        </div>
+        <div class="clock-row" id="clk-row-mad">
+          <span class="clock-market-dot" id="mkt-mad"></span>
+          <span class="clock-city">MAD</span>
+          <span class="clock-time" id="clk-mad">—</span>
+          <span class="clock-tz">CET</span>
+        </div>
+        <div class="clock-row" id="clk-row-dxb">
+          <span class="clock-market-dot" id="mkt-dxb"></span>
+          <span class="clock-city">DXB</span>
+          <span class="clock-time" id="clk-dxb">—</span>
+          <span class="clock-tz">GST</span>
+        </div>
+        <div class="clock-row" id="clk-row-tky">
+          <span class="clock-market-dot" id="mkt-tky"></span>
+          <span class="clock-city">TKY</span>
+          <span class="clock-time" id="clk-tky">—</span>
+          <span class="clock-tz">JST</span>
+        </div>
+        <div class="clock-local-row" id="clk-local-row">
+          <span class="clock-local-label">LOCAL</span>
+          <span class="clock-local-time" id="clk-local">—</span>
+        </div>
       </div>
     </aside>
 
@@ -227,7 +339,7 @@
       <div class="ai-panel-header">
         <div class="ai-panel-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span data-i18n="ai_daily">AI Daily Brief</span>
+          <span data-i18n="ai_daily">Resumen Diario</span>
         </div>
         <button class="ai-panel-close" id="ai-panel-close">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -290,6 +402,9 @@
     </div>
 
   </div><!-- end #app -->
+
+  <!-- Ambient particle canvas — additive particles, never dims the app -->
+  <canvas id="ambient-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none"></canvas>
 
   <script type="module" src="src/js/app.js"></script>
 </body>

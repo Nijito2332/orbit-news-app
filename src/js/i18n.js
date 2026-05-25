@@ -82,6 +82,28 @@ const T = {
     profile_countries:'Countries',
     upgrade_text: 'Unlock AI summaries, no ads, and exclusive sources',
     upgrade_btn:  'Upgrade — $4.99/mo',
+    // ─ Debrief ─
+    // ─ Profile panel ─
+    prof_email_lang: 'EMAIL LANGUAGE',
+    prof_brief_title: '📬 DAILY BRIEF AT 20:00',
+    prof_brief_desc:  'Top 3 stories from your favorite categories every evening.',
+    prof_notif_btn:   'Enable Notifications',
+    prof_interests:   'INTERESTS',
+    prof_countries:   'FOLLOWED COUNTRIES',
+    prof_save:        'Save profile',
+    prof_logout:      'Sign out',
+    prof_member:      'ORBIT Member',
+    debrief_btn:    'Daily Brief',
+    debrief_start:  'START BRIEFING',
+    debrief_next:   'Next →',
+    debrief_prev:   '← Back',
+    debrief_read:   'Read more',
+    debrief_end:    'Briefing complete',
+    debrief_why:    'WHY IT MATTERS',
+    debrief_sentiment: 'GLOBAL SENTIMENT',
+    // ─ ORBIT+ ─
+    orbitplus_cta: 'Unlock with ORBIT+ — $4.99/mo',
+    orbitplus_dismiss: 'Not now',
     // ─ Globe controls ─
     news_note:  '📰 Live news in English · The Guardian',
   },
@@ -137,6 +159,28 @@ const T = {
     profile_countries:'Países',
     upgrade_text: 'Desbloquea resúmenes IA, sin anuncios y fuentes exclusivas',
     upgrade_btn:  'Actualizar — 4,99€/mes',
+    // ─ Profile panel ─
+    prof_email_lang: 'IDIOMA DEL EMAIL',
+    prof_brief_title: '📬 RESUMEN DIARIO A LAS 20:00',
+    prof_brief_desc:  'Las 3 mejores noticias de tus categorías favoritas cada tarde.',
+    prof_notif_btn:   'Activar notificaciones',
+    prof_interests:   'INTERESES',
+    prof_countries:   'PAÍSES SEGUIDOS',
+    prof_save:        'Guardar perfil',
+    prof_logout:      'Cerrar sesión',
+    prof_member:      'Miembro ORBIT',
+    debrief_btn:    'Resumen Diario',
+    debrief_start:  'VER RESUMEN',
+    debrief_next:   'Siguiente →',
+    debrief_prev:   '← Anterior',
+    debrief_read:   'Leer más',
+    debrief_end:    'Resumen completado',
+    debrief_why:    'POR QUÉ TE IMPORTA',
+    debrief_sentiment: 'SENTIMIENTO GLOBAL',
+    orbitplus_cta: 'Desbloquear con ORBIT+ — 4,99€/mes',
+    orbitplus_dismiss: 'Ahora no',
+    ai_brief:   'Resumen',
+    ai_daily:   'Resumen Diario',
     news_note:  '📰 Noticias en inglés · The Guardian',
   },
 
@@ -193,6 +237,25 @@ const T = {
     profile_countries:'Pays',
     upgrade_text: 'Débloquez les résumés IA, sans pub et sources exclusives',
     upgrade_btn:  'S\'abonner — 4,99€/mois',
+    prof_email_lang: 'LANGUE DE L\'EMAIL',
+    prof_brief_title: '📬 BRIEF QUOTIDIEN À 20:00',
+    prof_brief_desc:  'Les 3 meilleures histoires de vos catégories favorites chaque soir.',
+    prof_notif_btn:   'Activer les notifications',
+    prof_interests:   'INTÉRÊTS',
+    prof_countries:   'PAYS SUIVIS',
+    prof_save:        'Sauvegarder',
+    prof_logout:      'Se déconnecter',
+    prof_member:      'Membre ORBIT',
+    debrief_btn:    'Brief du Jour',
+    debrief_start:  'COMMENCER LE BRIEF',
+    debrief_next:   'Suivant →',
+    debrief_prev:   '← Précédent',
+    debrief_read:   'Lire plus',
+    debrief_end:    'Brief terminé',
+    debrief_why:    'POURQUOI C\'EST IMPORTANT',
+    debrief_sentiment: 'SENTIMENT MONDIAL',
+    orbitplus_cta: 'Débloquer avec ORBIT+ — 4,99€/mois',
+    orbitplus_dismiss: 'Pas maintenant',
     news_note:  '📰 Actualités en anglais · The Guardian',
   },
 
@@ -249,6 +312,25 @@ const T = {
     profile_countries:'Länder',
     upgrade_text: 'KI-Zusammenfassungen, keine Werbung und exklusive Quellen',
     upgrade_btn:  'Upgrade — 4,99€/Monat',
+    prof_email_lang: 'EMAIL-SPRACHE',
+    prof_brief_title: '📬 TAGESBRIEF UM 20:00 UHR',
+    prof_brief_desc:  'Die 3 besten Nachrichten aus Ihren Lieblingskategorien jeden Abend.',
+    prof_notif_btn:   'Benachrichtigungen aktivieren',
+    prof_interests:   'INTERESSEN',
+    prof_countries:   'GEFOLGTEN LÄNDER',
+    prof_save:        'Profil speichern',
+    prof_logout:      'Abmelden',
+    prof_member:      'ORBIT Mitglied',
+    debrief_btn:    'Tagesüberblick',
+    debrief_start:  'BRIEFING STARTEN',
+    debrief_next:   'Weiter →',
+    debrief_prev:   '← Zurück',
+    debrief_read:   'Mehr lesen',
+    debrief_end:    'Briefing abgeschlossen',
+    debrief_why:    'WARUM ES WICHTIG IST',
+    debrief_sentiment: 'GLOBALE STIMMUNG',
+    orbitplus_cta: 'Mit ORBIT+ freischalten — 4,99€/Monat',
+    orbitplus_dismiss: 'Nicht jetzt',
     news_note:  '📰 Nachrichten auf Englisch · The Guardian',
   },
 };
@@ -292,6 +374,19 @@ export function applyAll() {
     const val = t(key);
     if (val) el.title = val;
   });
+}
+
+// ─── Cultural Debrief naming ──────────────────────────────────────────────────
+// The brand name adapts per language/culture (not just translated).
+export const DEBRIEF_NAMES = {
+  en: { name: 'Daily Brief',      subtitle: 'Your world, curated',       icon: '◎', tone: 'intel'    },
+  es: { name: 'Resumen Diario',   subtitle: 'Tu universo del día',        icon: '◎', tone: 'editorial' },
+  fr: { name: 'Brief du Jour',    subtitle: "L'essentiel pour vous",      icon: '◎', tone: 'refined'  },
+  de: { name: 'Tagesüberblick',   subtitle: 'Ihr täglicher Überblick',    icon: '◎', tone: 'factual'  },
+};
+
+export function getDebriefName(lang) {
+  return (DEBRIEF_NAMES[lang] || DEBRIEF_NAMES.en).name;
 }
 
 export { T };

@@ -7,10 +7,14 @@ import { Globe }            from './Globe.js';
 import { UIManager }        from './UIManager.js';
 import { CATEGORIES, COUNTRY_FLAGS } from './data.js';
 import { translateNews }    from './TranslationService.js';
-import { processFeed }      from './ProcessingPipeline.js';
 import { applyAll, getLang } from './i18n.js';
 import { RealtimeEngine }   from './RealtimeEngine.js';
-import { initAuth, isLoggedIn, getProfile, showAuthModal, logout, trackRead } from './AuthManager.js';
+import { initAuth, isLoggedIn, getUser, getProfile, register, login } from './AuthManager.js';
+import { openOrbitPlus } from './OrbitPlus.js';
+import { VERSION, CHANGELOG, shouldShowChangelog, markChangelogSeen } from './version.js';
+import { detect as chronosDetect, recordSignal }  from './ChronosEngine.js';
+import { adaptFeedToTime, activityLevel }          from './TimeContextEngine.js';
+import { AmbientCanvas }                           from './AmbientCanvas.js';
 
 // ─── Capacitor ────────────────────────────────────────────────────────────────
 const isCapacitor = typeof window !== 'undefined' && !!window.Capacitor;
@@ -70,6 +74,106 @@ function launchApp() {
 
 // ─── Global state ─────────────────────────────────────────────────────────────
 let _globe       = null;
+let _authResolve = null;
+let _chronosSlot = 'morning'; // updated after chronos detect
+
+// ─── Auth wall setup ──────────────────────────────────────────────────────────
+function _waitForAuth() {
+  return new Promise(resolve => { _authResolve = resolve; });
+}
+
+function _showAuthWall() {
+  const aw = document.getElementById('auth-wall');
+  if (aw) aw.classList.remove('hidden');
+}
+
+function _hideAuthWall() {
+  const aw = document.getElementById('auth-wall');
+  if (!aw) return;
+  aw.classList.add('fade-out');
+  // Reveal loading screen underneath the fading auth wall
+  document.getElementById('loading-screen')?.classList.remove('hidden');
+  setTimeout(() => aw.classList.add('hidden'), 700);
+}
+
+function _initAuthWall() {
+  const wall   = document.getElementById('auth-wall');
+  if (!wall) return;
+  wall.classList.remove('hidden');
+
+  const form    = document.getElementById('aw-form');
+  const tabs    = wall.querySelectorAll('.aw-tab');
+  const nameIn  = document.getElementById('aw-name');
+  const briefRow= document.getElementById('aw-brief-row');
+  const submit  = document.getElementById('aw-submit');
+  const submitTxt = document.getElementById('aw-submit-text');
+  const errEl   = document.getElementById('aw-error');
+  const succEl  = document.getElementById('aw-success');
+  let mode = 'register';
+
+  function setMode(m) {
+    mode = m;
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === m));
+    if (m === 'login') {
+      nameIn?.classList.add('hidden');
+      briefRow?.classList.add('hidden');
+      submitTxt.textContent = 'Entrar';
+      document.getElementById('aw-pass').setAttribute('autocomplete','current-password');
+    } else {
+      nameIn?.classList.remove('hidden');
+      briefRow?.classList.remove('hidden');
+      submitTxt.textContent = 'Crear cuenta gratis';
+      document.getElementById('aw-pass').setAttribute('autocomplete','new-password');
+    }
+    errEl.classList.add('hidden');
+    succEl.classList.add('hidden');
+  }
+
+  tabs.forEach(tab => tab.addEventListener('click', () => setMode(tab.dataset.tab)));
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email    = document.getElementById('aw-email').value.trim();
+    const password = document.getElementById('aw-pass').value;
+    const name     = document.getElementById('aw-name')?.value?.trim() || '';
+    const brief    = document.getElementById('aw-brief')?.checked ?? true;
+
+    submit.disabled = true;
+    submitTxt.textContent = '...';
+    errEl.classList.add('hidden');
+    succEl.classList.add('hidden');
+
+    try {
+      if (mode === 'login') {
+        await login({ email, password });
+      } else {
+        const result = await register({ email, password, name, daily_brief: brief });
+        if (result.requiresLogin) {
+          succEl.textContent = 'Cuenta creada. Inicia sesión.';
+          succEl.classList.remove('hidden');
+          setMode('login');
+          submit.disabled = false;
+          return;
+        }
+      }
+      // Success — update avatar and proceed to app
+      const user = getUser();
+      const av   = document.querySelector('.avatar');
+      if (av && user) av.textContent = (getProfile()?.name || user.email || 'U').charAt(0).toUpperCase();
+      _hideAuthWall();
+      if (_authResolve) { _authResolve(); _authResolve = null; }
+    } catch(err) {
+      let msg = err.message || 'Algo salió mal';
+      if (msg.includes('invalid_credentials') || msg.includes('Invalid login')) msg = 'Email o contraseña incorrectos';
+      if (msg.includes('already') || msg.includes('duplicate')) msg = 'Ya tienes cuenta. Inicia sesión.';
+      if (msg.includes('6 char') || msg.includes('should be')) msg = 'La contraseña debe tener al menos 6 caracteres';
+      errEl.textContent = msg;
+      errEl.classList.remove('hidden');
+      submitTxt.textContent = mode === 'login' ? 'Entrar' : 'Crear cuenta gratis';
+      submit.disabled = false;
+    }
+  });
+}
 let _ui          = null;
 let _liveNewsRaw = [];   // Original from server
 let _liveNews    = [];   // After translation (display)
@@ -91,14 +195,23 @@ function spawnHotspots(news, animate = false) {
     const centroid = CENTROIDS[country];
     if (!centroid) return;
 
+    // Use real articles for intensity/color — micro-stories are filler, not signals
+    const realArticles = articles.filter(a => !a.isMicro);
+    const forIntensity = realArticles.length > 0 ? realArticles : articles;
+
     const avgIntensity = Math.min(
-      articles.reduce((s, a) => s + (a.intensity || 0.5), 0) / articles.length * 1.3,
+      forIntensity.reduce((s, a) => s + (a.intensity || 0.5), 0) / forIntensity.length * 1.3,
       1.0
     );
     const catCounts = {};
-    articles.forEach(a => { catCounts[a.category] = (catCounts[a.category] || 0) + 1; });
+    forIntensity.forEach(a => { catCounts[a.category] = (catCounts[a.category] || 0) + 1; });
     const domCat = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'world';
-    const cat    = CATEGORIES[domCat] || CATEGORIES.world;
+
+    // Color: most countries stay cyan, only genuinely viral ones change
+    const hotColor =
+      avgIntensity > 0.88 ? '#FF8C35' :   // breaking — orange (rare)
+      avgIntensity > 0.76 ? '#A855F7' :   // significant — purple
+                            '#00D4FF';     // normal — ORBIT cyan
 
     _globe.addHotspot({
       id:       `hub-${country}`,
@@ -111,7 +224,7 @@ function spawnHotspots(news, animate = false) {
       summary:  articles[0]?.title || '',
       _allNews: articles,
       _isHub:   true,
-    }, cat.color);
+    }, hotColor);
   });
 
   _liveNews = news;
@@ -128,7 +241,14 @@ function updateCounts(news) {
   Object.keys(CATEGORIES).forEach(cat => {
     if (cat === 'all') return;
     const el = document.getElementById(`cnt-${cat}`);
-    if (el) el.textContent = counts[cat] || 0;
+    if (!el) return;
+    if (cat === 'trending') {
+      // Count top-trending articles (trendScore > 0.6) across all categories
+      const hotCount = news.filter(n => (n.trendScore || n.intensity || 0) > 0.6).length;
+      el.textContent = hotCount || '—';
+    } else {
+      el.textContent = counts[cat] || 0;
+    }
   });
   const liveEl = document.querySelector('.sidebar-live span');
   if (liveEl) liveEl.textContent = `${news.length} live stories`;
@@ -148,7 +268,9 @@ async function applyTranslation(news, lang) {
 async function displayNews(rawNews) {
   const lang = getLang();
   const news = lang !== 'en' ? await applyTranslation(rawNews, lang) : rawNews;
-  spawnHotspots(news);
+  // Apply time-context re-ranking before spawning hotspots
+  const timeAdapted = adaptFeedToTime(news, _chronosSlot);
+  spawnHotspots(timeAdapted);
 }
 
 // ─── Merge new stories into existing pool ────────────────────────────────────
@@ -176,6 +298,51 @@ async function boot() {
     if (msg && label) label.textContent = msg;
   };
 
+  // ── Auth gate — must log in before globe loads ───────────────────────────────
+  await initAuth(() => {});
+  if (!isLoggedIn()) {
+    _initAuthWall();
+    await _waitForAuth();
+  } else {
+    const aw = document.getElementById('auth-wall');
+    if (aw) aw.classList.add('hidden');
+    screen.classList.remove('hidden');
+  }
+
+  // Update avatar — priority: profile name > auth metadata name > email prefix
+  const _user = getUser();
+  const _prof = getProfile();
+  if (_user) {
+    const metaName  = _user.user_metadata?.name || '';
+    const savedName = (_prof?.name && _prof.name !== 'World Explorer') ? _prof.name : '';
+    const name = savedName || metaName || _user.email?.split('@')[0] || 'U';
+    const av   = document.querySelector('.avatar');
+    if (av) av.textContent = name.charAt(0).toUpperCase();
+    document.getElementById('btn-profile')?.setAttribute('title', name);
+    // Auto-seed profile with registration name if not yet saved
+    if (metaName && !savedName) {
+      const { saveProfile } = await import('./PersonalizationService.js');
+      saveProfile({ name: metaName });
+    }
+  }
+
+  // ── Chronos — detect time context before globe loads ─────────────────────
+  const _chronos = chronosDetect();
+  _chronosSlot   = _chronos.slotKey;
+  const _activity = activityLevel(_chronos.hour);
+  // Drive ambient background intensity via CSS var
+  document.documentElement.style.setProperty('--activity', String(_activity));
+
+  // Start ambient particle canvas
+  const _ambientEl = document.getElementById('ambient-canvas');
+  let _ambient = null;
+  if (_ambientEl) {
+    _ambient = new AmbientCanvas(_ambientEl);
+    _ambient.setActivity(_activity);
+    _ambient.start();
+  }
+  console.log(`[Chronos] Slot: ${_chronos.slotKey} · Activity: ${(_activity*100).toFixed(0)}% · Spawn: ${_chronos.spawnLat.toFixed(1)}, ${_chronos.spawnLng.toFixed(1)}`);
+
   progress(0.05, 'Initializing globe…');
   initCapacitor().catch(() => {});
 
@@ -185,10 +352,10 @@ async function boot() {
 
   await new Promise(resolve => {
     _globe.callbacks.onReady = resolve;
-    setTimeout(resolve, 8000);
+    setTimeout(resolve, 6000); // 6s max — feel faster
   });
 
-  progress(0.65, 'Connecting to ORBIT engine…');
+  progress(0.65, 'Iniciando inteligencia global…');
 
   // Init UI
   _ui = new UIManager(_globe);
@@ -201,17 +368,8 @@ async function boot() {
 
   applyAll();
 
-  // Sidebar category filter
-  document.querySelectorAll('.sidebar-item').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-      _globe.filterByCategory(item.dataset.category || 'all');
-    });
-  });
-
   // ── Connect to ORBIT Realtime Engine ──────────────────────────────────────
-  progress(0.75, 'Connecting to live stream…');
+  progress(0.75, 'Sincronizando con 800+ fuentes globales…');
 
   _realtime = new RealtimeEngine({
     globe: _globe,
@@ -229,13 +387,28 @@ async function boot() {
       screen.style.opacity = '0';
       setTimeout(() => screen.classList.add('hidden'), 500);
       app.classList.remove('hidden');
-      _globe.flyTo(20, 10, 3.8, 2000);
+
+      // Re-fire resize so renderer matches actual post-auth viewport
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+
+      // Refresh trending bar with real topics from loaded news
+      setTimeout(() => _ui?.refreshTrending(), 800);
+
+      // Cinematic Chronos spawn — fly in from space to time-context position
+      setTimeout(() => {
+        _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
+        setTimeout(() => _globe.pulseCategories(_chronos.categories, 2500), 2000);
+      }, 600);
     },
 
     // Called whenever server pushes new stories (every ~90 seconds)
     onUpdate: async (newStories) => {
       console.log(`[App] Live update: +${newStories.length} stories`);
       await mergeNewStories(newStories);
+      // Refresh trending bar with updated news pool
+      _ui?.refreshTrending();
+      // Ambient pulse on live update (no color change — always blue)
+      if (_ambient) _ambient.setActivity(_activity);
     },
 
     // Connection error — show offline mode
@@ -247,20 +420,43 @@ async function boot() {
 
   _realtime.start();
 
-  // Safety net: if SSE doesn't init within 15 seconds, fall back to direct fetch
+  // ── FAST PATH: REST API immediately (don't wait for SSE) ─────────────────
+  // SSE can take 5-15 seconds. REST responds in 1-3 seconds.
+  // Show content instantly via REST, SSE upgrades in background.
+  (async () => {
+    try {
+      const res = await fetch(`${_realtime.getServerUrl()}/api/stories`, {
+        signal: AbortSignal.timeout(8000),
+      });
+      if (res.ok && _liveNewsRaw.length === 0) {
+        const data = await res.json();
+        const stories = data.stories || [];
+        if (stories.length > 0) {
+          console.log(`[App] Fast REST load: ${stories.length} stories`);
+          _liveNewsRaw = stories;
+          await displayNews(_liveNewsRaw);
+          progress(1.0);
+          // Reveal app immediately
+          screen.style.transition = 'opacity .5s ease';
+          screen.style.opacity = '0';
+          setTimeout(() => screen.classList.add('hidden'), 500);
+          app.classList.remove('hidden');
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+          setTimeout(() => {
+            _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
+            setTimeout(() => _globe.pulseCategories(_chronos.categories, 2500), 2000);
+          }, 600);
+          setTimeout(() => _ui?.refreshTrending(), 800);
+        }
+      }
+    } catch(_) { /* SSE will handle it */ }
+  })();
+
+  // SSE safety net: if neither REST nor SSE worked in 12 seconds
   setTimeout(async () => {
     if (_liveNewsRaw.length === 0) {
-      console.warn('[App] SSE timeout, fetching directly from API…');
+      console.warn('[App] All sources timeout, using fallback…');
       try {
-        const res = await fetch(`${_realtime.getServerUrl()}/api/stories`);
-        if (res.ok) {
-          const data = await res.json();
-          _liveNewsRaw = data.stories || [];
-          await displayNews(_liveNewsRaw);
-        }
-      } catch(e) {
-        console.warn('[App] Direct API fetch failed:', e.message);
-        // Use ProcessingPipeline micro-stories as last resort
         const { ensureDensity } = await import('./ProcessingPipeline.js');
         _liveNewsRaw = ensureDensity([]);
         await displayNews(_liveNewsRaw);
@@ -268,38 +464,10 @@ async function boot() {
         screen.style.opacity = '0';
         setTimeout(() => screen.classList.add('hidden'), 500);
         app.classList.remove('hidden');
-        _globe.flyTo(20, 10, 3.8, 2000);
+        _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
       }
     }
-  }, 15_000);
-
-  // Auth — wire profile button
-  await initAuth((user, profile) => {
-    const avatar = document.querySelector('.avatar');
-    const btn    = document.getElementById('btn-profile');
-    if (user) {
-      const name = profile?.name || user.email?.split('@')[0] || 'U';
-      if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
-      btn?.setAttribute('title', name);
-    } else {
-      if (avatar) avatar.textContent = 'N';
-    }
-  });
-
-  // Profile button: logged in → open profile panel, logged out → show auth modal
-  document.getElementById('btn-profile')?.addEventListener('click', () => {
-    if (isLoggedIn()) {
-      _ui?.onHotspotLeave();
-      document.getElementById('profile-panel')?.classList.toggle('hidden');
-    } else {
-      showAuthModal('register', (user) => {
-        if (user) {
-          const avatar = document.querySelector('.avatar');
-          if (avatar) avatar.textContent = user.email?.charAt(0)?.toUpperCase() || 'U';
-        }
-      });
-    }
-  });
+  }, 12_000);
 
   // Onboarding
   document.querySelectorAll('.ob-cat').forEach(b => b.addEventListener('click', () => b.classList.toggle('selected')));
@@ -308,15 +476,57 @@ async function boot() {
   document.getElementById('ob-next-3')?.addEventListener('click', () => showStep(4));
   document.getElementById('ob-launch')?.addEventListener('click', launchApp);
   document.getElementById('ob-skip')?.addEventListener('click',   launchApp);
-  if (!localStorage.getItem(FIRST_VISIT)) {
-    document.getElementById('onboarding').classList.remove('hidden');
-    showStep(1);
-  }
+
+  // ORBIT+ topbar button
+  document.getElementById('btn-orbit-plus')?.addEventListener('click', () => openOrbitPlus('topbar'));
+
+  // Set version in sidebar badge
+  const svbNum = document.getElementById('svb-num');
+  if (svbNum) svbNum.textContent = 'v' + VERSION;
 
   // Language change → re-translate displayed news
   window.addEventListener('orbit:lang', async () => {
     if (_liveNewsRaw.length) await displayNews(_liveNewsRaw);
   });
+}
+
+function _showChangelog() {
+  const latest = CHANGELOG[0];
+  if (!latest) return;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:800;max-width:320px;animation:panel-drop .3s ease';
+  modal.innerHTML = `
+    <div style="background:rgba(8,8,22,.97);border:1px solid rgba(0,212,255,.25);border-radius:18px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 0 1px rgba(0,212,255,.08)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:22px">${latest.emoji}</span>
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff">${latest.title}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:1px">v${latest.version} · ${latest.date}</div>
+          </div>
+        </div>
+        <button id="cl-close" style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+      <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px">
+        ${latest.items.map(item => `
+          <li style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.5">
+            <span style="color:#00D4FF;flex-shrink:0;margin-top:1px">✓</span>
+            <span>${item}</span>
+          </li>
+        `).join('')}
+      </ul>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);font-size:10px;color:rgba(255,255,255,.25);text-align:center">
+        ORBIT ${VERSION} · orbit-news.vercel.app
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  markChangelogSeen();
+
+  modal.querySelector('#cl-close').onclick = () => modal.remove();
+  setTimeout(() => modal.remove(), 12000); // auto-dismiss after 12s
 }
 
 boot().catch(err => console.error('[ORBIT boot]', err));
