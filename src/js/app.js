@@ -35,6 +35,23 @@ async function initCapacitor() {
     const { SplashScreen } = await import('@capacitor/splash-screen');
     await SplashScreen.hide({ fadeOutDuration: 500 });
   } catch(_) {}
+  if (isAndroid) {
+    try {
+      const { App } = await import('@capacitor/app');
+      App.addListener('backButton', ({ canGoBack }) => {
+        // Close panels in reverse order of depth
+        const articleModal  = document.getElementById('article-modal');
+        const aiPanel       = document.getElementById('ai-panel');
+        const profilePanel  = document.getElementById('profile-panel');
+        const newsPanel     = document.getElementById('news-panel');
+        if (articleModal  && !articleModal.classList.contains('hidden'))  { articleModal.classList.add('hidden');  return; }
+        if (aiPanel       && !aiPanel.classList.contains('hidden'))       { aiPanel.classList.add('hidden');       return; }
+        if (profilePanel  && !profilePanel.classList.contains('hidden'))  { profilePanel.classList.add('hidden');  return; }
+        if (newsPanel     && newsPanel.classList.contains('open'))        { newsPanel.classList.remove('open');    return; }
+        App.exitApp();
+      });
+    } catch(_) {}
+  }
 }
 
 // ─── Country centroids ────────────────────────────────────────────────────────
