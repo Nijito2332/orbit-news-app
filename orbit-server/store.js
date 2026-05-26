@@ -4,7 +4,7 @@
 //  TTL: 6 hours
 // ════════════════════════════════════════════════════════
 
-const MAX_STORIES = 800;   // keep memory low on Railway
+const MAX_STORIES = 500;   // production cap — keeps heap under 50MB
 const TTL_MS      = 6 * 3_600_000;
 
 // ── Normalize helpers ────────────────────────────────────────────────────────

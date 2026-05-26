@@ -96,7 +96,7 @@ async function fetchRSSFeed(feed) {
     items = parsed.items || [];
   } catch(_) { return []; }
 
-  return items.slice(0, 20).map((item, i) => {  // 20 items per feed (was 12)
+  return items.slice(0, 7).map((item, i) => {   // 7 items per feed — O(n²) dedup requires low n
     const title = strip(item.title || '');
     if (!title || title.length < 5) return null;
     const coords = coordsFor(feed.country);
@@ -153,18 +153,25 @@ export async function runIngestionCycle(broadcast) {
     fetchAllRSS(),
   ]);
 
-  const raw = [
+  let raw = [
     ...(gResult.status === 'fulfilled' ? gResult.value : []),
     ...(rResult.status === 'fulfilled' ? rResult.value : []),
   ];
 
-  console.log(`[Ingestion] ${raw.length} raw articles | ${((Date.now()-start)/1000).toFixed(1)}s`);
+  // Hard cap: deduplicateArticles is O(n²) — 1200² = 1.4M comparisons, safe on 512MB
+  // 3800+ articles → 14M+ comparisons → OOM. Cap before pipeline.
+  if (raw.length > 1200) {
+    raw.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    raw = raw.slice(0, 1200);
+  }
 
-  // AI Pipeline
-  const clustered = clusterArticles(raw);
+  const heapMB = Math.round(process.memoryUsage().heapUsed / 1_048_576);
+  console.log(`[Ingestion] ${raw.length} raw articles | heap ${heapMB}MB | ${((Date.now()-start)/1000).toFixed(1)}s`);
+
+  // AI Pipeline — null raw immediately after use so GC can reclaim before O(n²) dedup
+  const clustered = clusterArticles(raw); raw = null;
   const scored    = scoreArticles(clustered);
   const dense     = ensureDensity(scored);
-  // Global balance: cap over-represented, boost under-served countries
   const balanced  = globalBalance(dense);
 
   // Optional: AI summaries for top clusters
@@ -190,7 +197,7 @@ export async function runIngestionCycle(broadcast) {
 }
 
 // ─── CONTINUOUS INGESTION LOOP — runs forever ─────────────────────────────────
-const CYCLE_MS = 90_000; // 90 seconds between cycles
+const CYCLE_MS = 4 * 60_000; // 4 minutes — gives GC time to reclaim between cycles
 
 export async function startIngestionLoop(broadcast) {
   console.log('[ORBIT Engine] Starting continuous ingestion loop…');

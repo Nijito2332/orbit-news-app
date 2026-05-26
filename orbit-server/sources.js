@@ -10,11 +10,11 @@ export const GROQ_KEY = process.env.GROQ_KEY || null; // Optional: free at conso
 
 // Guardian section-level bulk queries (5 calls → 250 articles)
 export const GUARDIAN_BULK = [
-  { sections: 'sport,football',                                        cat: 'sports',        size: 50 },
-  { sections: 'film,music,television,culture,arts,stage,lifeandstyle', cat: 'entertainment', size: 50 },
-  { sections: 'games',                                                  cat: 'gaming',        size: 50 },
-  { sections: 'technology,science,environment',                         cat: 'technology',    size: 50 },
-  { sections: 'world,us-news,uk-news,politics,business,money',         cat: 'world',         size: 50 },
+  { sections: 'sport,football',                                        cat: 'sports',        size: 20 },
+  { sections: 'film,music,television,culture,arts,stage,lifeandstyle', cat: 'entertainment', size: 20 },
+  { sections: 'games',                                                  cat: 'gaming',        size: 20 },
+  { sections: 'technology,science,environment',                         cat: 'technology',    size: 20 },
+  { sections: 'world,us-news,uk-news,politics,business,money',         cat: 'world',         size: 20 },
 ];
 
 const DW  = 'https://rss.dw.com/rdf';
