@@ -1,0 +1,45 @@
+# Fly.io — ORBIT News Engine
+# Deploy: flyctl deploy (from inside orbit-server/)
+# Logs:   flyctl logs
+# SSH:    flyctl ssh console
+
+app            = "orbit-news-engine"
+primary_region = "mad"          # Madrid — closest to Spain, low latency EU/US
+
+kill_signal  = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT      = "3001"
+  NODE_ENV  = "production"
+
+# Always-on machine — SSE requires persistent connections, not serverless
+[[vm]]
+  size   = "shared-cpu-1x"   # 1 vCPU, 256MB base
+  memory = "1gb"             # 1GB RAM — handles 2000-article O(n²) dedup comfortably
+
+[http_service]
+  internal_port       = 3001
+  force_https         = true
+  auto_stop_machines  = false   # NEVER sleep — SSE clients need a live server
+  auto_start_machines = true
+  min_machines_running = 1      # at least 1 machine at all times
+
+  [http_service.concurrency]
+    type       = "requests"
+    soft_limit = 200
+    hard_limit = 400
+
+[[http_service.checks]]
+  grace_period = "30s"
+  interval     = "15s"
+  method       = "GET"
+  path         = "/health"
+  timeout      = "5s"
+
+# Custom domain — uncomment after purchase and run: flyctl certs add <domain>
+# [[http_service.custom_domains]]
+#   hostname = "orbitnews.app"

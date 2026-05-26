@@ -4,7 +4,7 @@
 //  TTL: 6 hours
 // ════════════════════════════════════════════════════════
 
-const MAX_STORIES = 500;   // production cap — keeps heap under 50MB
+const MAX_STORIES = 1000;  // Fly.io 1GB — comfortably fits 1000 stories in heap
 const TTL_MS      = 6 * 3_600_000;
 
 // ── Normalize helpers ────────────────────────────────────────────────────────

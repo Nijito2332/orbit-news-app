@@ -96,7 +96,7 @@ async function fetchRSSFeed(feed) {
     items = parsed.items || [];
   } catch(_) { return []; }
 
-  return items.slice(0, 7).map((item, i) => {   // 7 items per feed — O(n²) dedup requires low n
+  return items.slice(0, 10).map((item, i) => {  // 10 items per feed — safe on Fly.io 1GB
     const title = strip(item.title || '');
     if (!title || title.length < 5) return null;
     const coords = coordsFor(feed.country);
@@ -158,11 +158,11 @@ export async function runIngestionCycle(broadcast) {
     ...(rResult.status === 'fulfilled' ? rResult.value : []),
   ];
 
-  // Hard cap: deduplicateArticles is O(n²) — 1200² = 1.4M comparisons, safe on 512MB
-  // 3800+ articles → 14M+ comparisons → OOM. Cap before pipeline.
-  if (raw.length > 1200) {
+  // Hard cap: deduplicateArticles is O(n²) in memory.
+  // 2000² = 4M comparisons → ~80MB peak — safe on Fly.io 1GB.
+  if (raw.length > 2000) {
     raw.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    raw = raw.slice(0, 1200);
+    raw = raw.slice(0, 2000);
   }
 
   const heapMB = Math.round(process.memoryUsage().heapUsed / 1_048_576);
@@ -197,7 +197,7 @@ export async function runIngestionCycle(broadcast) {
 }
 
 // ─── CONTINUOUS INGESTION LOOP — runs forever ─────────────────────────────────
-const CYCLE_MS = 4 * 60_000; // 4 minutes — gives GC time to reclaim between cycles
+const CYCLE_MS = 3 * 60_000; // 3 minutes — Fly.io 1GB handles faster cycles
 
 export async function startIngestionLoop(broadcast) {
   console.log('[ORBIT Engine] Starting continuous ingestion loop…');

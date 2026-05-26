@@ -5,9 +5,7 @@
 // ════════════════════════════════════════════════════════
 
 // ── Server URL ──────────────────────────────────────────────────────────────
-// In production: set this to your Railway/Render/Fly.io URL
-// Example: 'https://orbit-server.railway.app'
-const PRODUCTION_URL = 'https://orbit-news-engine-production.up.railway.app';
+const PRODUCTION_URL = 'https://orbit-news-engine.fly.dev';
 
 const SERVER_URL = (() => {
   // Allow override via localStorage for dev testing
