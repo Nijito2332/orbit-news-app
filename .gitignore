@@ -3,7 +3,8 @@ dist/
 .env
 *.log
 .DS_Store
-orbit-server/
+orbit-server/node_modules/
+orbit-server/.env
 android/.idea/
 ios/
 .vercel

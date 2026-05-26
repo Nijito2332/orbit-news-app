@@ -220,8 +220,8 @@ function spawnHotspots(news, animate = false) {
 
     // Color: most countries stay cyan, only genuinely viral ones change
     const hotColor =
-      avgIntensity > 0.88 ? '#FF8C35' :   // breaking — orange (rare)
-      avgIntensity > 0.76 ? '#A855F7' :   // significant — purple
+      avgIntensity > 0.88 ? '#FF3B3B' :   // breaking — red (contrasts city lights)
+      avgIntensity > 0.76 ? '#C084FC' :   // significant — violet
                             '#00D4FF';     // normal — ORBIT cyan
 
     _globe.addHotspot({
@@ -278,10 +278,14 @@ async function applyTranslation(news, lang) {
 
 async function displayNews(rawNews) {
   const lang = getLang();
-  const news = lang !== 'en' ? await applyTranslation(rawNews, lang) : rawNews;
-  // Apply time-context re-ranking before spawning hotspots
-  const timeAdapted = adaptFeedToTime(news, _chronosSlot);
-  spawnHotspots(timeAdapted);
+  // Always spawn immediately with original content — never block on translation
+  spawnHotspots(adaptFeedToTime(rawNews, _chronosSlot));
+  // Translate in background and refresh hotspots when ready
+  if (lang !== 'en') {
+    applyTranslation(rawNews, lang).then(translated => {
+      spawnHotspots(adaptFeedToTime(translated, _chronosSlot));
+    }).catch(() => {});
+  }
 }
 
 // ─── Merge new stories into existing pool ────────────────────────────────────

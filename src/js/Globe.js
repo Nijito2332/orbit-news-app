@@ -91,64 +91,84 @@ const EARTH_FRAG = /* glsl */`
     dc = pow(clamp(dc, 0.0, 1.0), vec3(0.88)) * 1.06;
     dc = mix(dc, dc * vec3(0.60, 0.82, 1.18), smQ * 0.40);
 
-    // ── 2. NIGHT BASE — dark terrain (oceans/continents visible as shape) ─
-    // nightBase is just dark enough to see continent shape, not flat black
-    vec3 nightBase = vec3(0.002, 0.005, 0.018);
+    // ── 2. NIGHT BASE — ocean vs land from specular mask ─────────────────
+    // smQ ≈ 1.0 for water, ≈ 0.0 for land. At night: ocean = deep navy,
+    // land = dark charcoal. This gives continents their shape without city lights.
+    vec3 nightOcean = vec3(0.010, 0.022, 0.072);  // deep navy — NASA Black Marble ocean
+    vec3 nightLand  = vec3(0.004, 0.007, 0.018);  // dark charcoal — continent silhouette
+    vec3 nightBase  = mix(nightLand, nightOcean, smQ);
 
-    // ── 3. CITY LIGHTS — multi-scale organic sampling ────────────────────
-    // 3 scales: tight core + medium cluster + wide metro halo
-    // Large offsets needed — texture is 2048px, city halos must span ~20px
-    vec2 px2  = vec2( 2.0 / 2048.0,  2.0 / 1024.0);  // 2 texels  — core
-    vec2 px10 = vec2(12.0 / 2048.0, 12.0 / 1024.0);  // 12 texels — cluster
-    vec2 px22 = vec2(22.0 / 2048.0, 22.0 / 1024.0);  // 22 texels — metro halo
+    // ── 3. CITY LIGHTS — photorealistic multi-scale density field ────────────
+    // Strategy: read NASA texture as a population density field across 3 scales.
+    // Scale A (4px)  — city cores:   bright isolated dots → pinpoint hotspots
+    // Scale B (16px) — urban extent: district merging → city proper
+    // Scale C (48px) — civilization: connecting metro regions → belts like EU/NE-US
+    // NO hash noise (it creates the square grid artifact) — NASA texture has its own variation.
 
-    // Scale 1: sharp core — 5-tap tight
-    vec3 tSharp = texture2D(uNight, vUv).rgb * 0.50 +
-      (texture2D(uNight, vUv+vec2( px2.x,0.)).rgb + texture2D(uNight, vUv+vec2(-px2.x,0.)).rgb +
-       texture2D(uNight, vUv+vec2(0., px2.y)).rgb  + texture2D(uNight, vUv+vec2(0.,-px2.y)).rgb) * 0.125;
+    vec2 px  = vec2(1.0 / 2048.0, 1.0 / 1024.0);   // 1 texel in UV space
 
-    // Scale 2: city clusters — 9-tap medium
-    vec3 tMed = texture2D(uNight, vUv).rgb * 0.28 +
-      (texture2D(uNight, vUv+vec2( px10.x,0.)).rgb + texture2D(uNight, vUv+vec2(-px10.x,0.)).rgb +
-       texture2D(uNight, vUv+vec2(0., px10.y)).rgb  + texture2D(uNight, vUv+vec2(0.,-px10.y)).rgb) * 0.10 +
-      (texture2D(uNight, vUv+vec2( px10.x, px10.y)).rgb + texture2D(uNight, vUv+vec2(-px10.x, px10.y)).rgb +
-       texture2D(uNight, vUv+vec2( px10.x,-px10.y)).rgb + texture2D(uNight, vUv+vec2(-px10.x,-px10.y)).rgb) * 0.055;
+    // ─ A: city core (5 taps, 4px radius)
+    vec3 tA = texture2D(uNight, vUv).rgb * 0.44 +
+      (texture2D(uNight, vUv + vec2( 4.*px.x, 0.)).rgb +
+       texture2D(uNight, vUv + vec2(-4.*px.x, 0.)).rgb +
+       texture2D(uNight, vUv + vec2(0.,  4.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2(0., -4.*px.y)).rgb) * 0.14;
 
-    // Scale 3: metro halo — 9-tap wide
-    vec3 tWide = texture2D(uNight, vUv).rgb * 0.18 +
-      (texture2D(uNight, vUv+vec2( px22.x,0.)).rgb + texture2D(uNight, vUv+vec2(-px22.x,0.)).rgb +
-       texture2D(uNight, vUv+vec2(0., px22.y)).rgb  + texture2D(uNight, vUv+vec2(0.,-px22.y)).rgb) * 0.10 +
-      (texture2D(uNight, vUv+vec2( px22.x, px22.y)).rgb + texture2D(uNight, vUv+vec2(-px22.x, px22.y)).rgb +
-       texture2D(uNight, vUv+vec2( px22.x,-px22.y)).rgb + texture2D(uNight, vUv+vec2(-px22.x,-px22.y)).rgb) * 0.07;
+    // ─ B: urban cluster (9 taps, 16px axis + 11px diagonal)
+    vec3 tB = texture2D(uNight, vUv).rgb * 0.26 +
+      (texture2D(uNight, vUv + vec2( 16.*px.x, 0.)).rgb +
+       texture2D(uNight, vUv + vec2(-16.*px.x, 0.)).rgb +
+       texture2D(uNight, vUv + vec2(0.,  16.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2(0., -16.*px.y)).rgb) * 0.095 +
+      (texture2D(uNight, vUv + vec2( 11.*px.x,  11.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2(-11.*px.x,  11.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2( 11.*px.x, -11.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2(-11.*px.x, -11.*px.y)).rgb) * 0.0575;
 
-    float clSharp = dot(tSharp, vec3(0.299,0.587,0.114));
-    float clMed   = dot(tMed,   vec3(0.299,0.587,0.114));
-    float clWide  = dot(tWide,  vec3(0.299,0.587,0.114));
+    // ─ C: civilization belt (9 taps, 48px axis + 34px diagonal)
+    // This radius (~8 degrees) is what merges London-Paris-Amsterdam into one glow belt.
+    vec3 tC = texture2D(uNight, vUv).rgb * 0.18 +
+      (texture2D(uNight, vUv + vec2( 48.*px.x, 0.)).rgb +
+       texture2D(uNight, vUv + vec2(-48.*px.x, 0.)).rgb +
+       texture2D(uNight, vUv + vec2(0.,  48.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2(0., -48.*px.y)).rgb) * 0.11 +
+      (texture2D(uNight, vUv + vec2( 34.*px.x,  34.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2(-34.*px.x,  34.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2( 34.*px.x, -34.*px.y)).rgb +
+       texture2D(uNight, vUv + vec2(-34.*px.x, -34.*px.y)).rgb) * 0.075;
 
-    // Low thresholds: dim cities (AU, NZ, ZA) have texture values as low as 0.04
-    float maskSharp = smoothstep(0.04, 0.24, clSharp);
-    float maskMed   = smoothstep(0.02, 0.14, clMed);
-    float maskWide  = smoothstep(0.01, 0.08, clWide);
+    float lumA = dot(tA, vec3(0.299, 0.587, 0.114));
+    float lumB = dot(tB, vec3(0.299, 0.587, 0.114));
+    float lumC = dot(tC, vec3(0.299, 0.587, 0.114));
 
-    // Coarse hash noise — breaks grid at city-block scale, not sub-pixel
-    float hashVal  = fract(sin(dot(floor(vUv * vec2(128.0, 64.0)), vec2(127.1, 311.7))) * 43758.5453);
-    float noiseMod = 0.72 + 0.28 * hashVal;
+    // Hard minimum threshold — anything below this is pure black ocean/land.
+    // This eliminates the isolated floating pixels in the middle of nowhere.
+    float mA = smoothstep(0.055, 0.14, lumA);   // city cores: only clear signals
+    float mB = smoothstep(0.030, 0.10, lumB);   // clusters: lower (merged areas dimmer)
+    float mC = smoothstep(0.016, 0.07, lumC);   // belt: very low (sparse but connected)
 
-    // Warm amber city tones
-    vec3 cityCore   = vec3(2.0,  1.20, 0.20) * pow(clSharp + 0.01, 0.30) * 4.5 * maskSharp;
-    vec3 citySpread = vec3(1.6,  1.00, 0.25) * pow(clMed   + 0.01, 0.42) * 2.2 * maskMed;
-    vec3 cityHalo   = vec3(1.1,  0.78, 0.28) * pow(clWide  + 0.01, 0.55) * 0.9 * maskWide;
+    // Hierarchy power curves — RESTRAINED. Peak HDR values must stay under ~2.5
+    // so ACES tonemapping can preserve detail instead of clipping to white.
+    // The brightest megacities (Tokyo, NYC, London) hit ~2.0; suburbs ~0.3.
+    float cityA = pow(lumA * mA, 0.58) * 1.85;  // bright cores — selective
+    float cityB = pow(lumB * mB, 0.70) * 0.90;  // city districts — softer
+    float cityC = pow(lumC * mC, 0.82) * 0.32;  // civilization haze — very subtle
 
-    vec3 cityColor = (cityCore * 0.50 + citySpread * 0.32 + cityHalo * 0.18) * noiseMod;
+    // ISS color palette: warm-white at megacity cores → amber → russet at belt edge.
+    vec3 colA = vec3(1.55, 1.05, 0.42) * cityA;
+    vec3 colB = vec3(1.20, 0.74, 0.17) * cityB;
+    vec3 colC = vec3(0.80, 0.50, 0.10) * cityC;
 
-    // Night = deep dark ocean + additive city glow
-    vec3 nc = nightBase + cityColor;
+    vec3 cityColor = colA + colB + colC;
+
+    // Night base: virtually black — deep space realism. Oceans are invisible.
+    vec3 nc = vec3(0.001, 0.002, 0.010) + cityColor;
 
     // ── 4. BLEND DAY + NIGHT ─────────────────────────────────────────────
     vec3 col = mix(nc, dc, dayFac);
 
-    // City boost in night zone
-    col += cityColor * nightFac * 0.65;
+    // Minimal secondary city pass — just enough to keep lights visible at terminator.
+    col += cityColor * nightFac * 0.12;
 
     // ── 5. OCEAN SPECULAR (day) + moonlight glint (night) ────────────────
     vec3  H   = normalize(L + V);
@@ -163,14 +183,14 @@ const EARTH_FRAG = /* glsl */`
     float rim = pow(1.0 - NdV, 3.0);
     float rdF = smoothstep(-0.12, 0.70, NdL);
     vec3  atmo = mix(vec3(0.005, 0.010, 0.060), vec3(0.18, 0.50, 1.0), rdF);
-    col += atmo * rim * 0.38;  // reduced — thin halo, not thick blue shell
+    col += atmo * rim * 0.08;  // barely there — ISS atmosphere is a thin blue thread
 
-    // ── 7. TERMINATOR — tight orange band ────────────────────────────────
+    // ── 7. TERMINATOR — thin golden line at day/night boundary ───────────
     float term = exp(-pow(NdL * 10.0, 2.0));
-    col += vec3(0.42, 0.18, 0.02) * term * rim * 0.24 * max(NdL, 0.0);
+    col += vec3(0.36, 0.14, 0.02) * term * rim * 0.08 * max(NdL, 0.0);
 
     // ── 8. LIMB DARKENING ────────────────────────────────────────────────
-    col *= 0.78 + 0.22 * pow(NdV, 0.35);
+    col *= 0.80 + 0.20 * pow(NdV, 0.35);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -203,18 +223,18 @@ const ATMO_FRAG = /* glsl */`
     float rim = pow(1.0 - NdV, 2.2);
     float dF  = smoothstep(-0.12, 0.70, NdL);
 
-    // Rayleigh: deep indigo night → vivid ice blue day limb
-    vec3 ac = mix(vec3(0.02, 0.05, 0.28), vec3(0.22, 0.58, 1.0), dF);
+    // Rayleigh: barely visible thin line — ISS atmosphere is a delicate blue thread.
+    vec3 ac = mix(vec3(0.01, 0.03, 0.18), vec3(0.12, 0.36, 0.78), dF);
 
     float dayRim   = rim * smoothstep(-0.05, 0.55, NdL);
-    // Night limb: subtle but clearly blue glow (moonlight / earthshine)
     float nightRim = rim * smoothstep(0.15, -0.15, NdL);
 
+    // Very tight ring: only visible right at the limb edge, no thick shell.
     float alpha = clamp(
-      ac.b * 0.32 * rim   // base Rayleigh
-      + dayRim  * 0.30    // day-side ice blue
-      + nightRim * 0.16,  // night-side indigo glow
-      0.0, 0.68
+      ac.b * 0.05 * rim
+      + dayRim  * 0.06
+      + nightRim * 0.015,
+      0.0, 0.10           // hard cap — nearly invisible except at exact limb
     );
 
     gl_FragColor = vec4(ac, alpha);
@@ -229,12 +249,12 @@ const HOTSPOT_VERT = /* glsl */`
   }
 `;
 
-// ── ORBIT Signature Hotspot — orbital energy node ─────────────────────────
+// ── ORBIT Signature Hotspot — clean beacon node ────────────────────────────
 const HOTSPOT_FRAG = /* glsl */`
   uniform vec3  uColor;
   uniform float uTime;
   uniform float uOpacity;
-  uniform float uIntensity;   // 0-1: drives glow size, ring speed, halo
+  uniform float uIntensity;
 
   varying vec2 vUv;
 
@@ -245,46 +265,42 @@ const HOTSPOT_FRAG = /* glsl */`
 
     if (d > 0.5) discard;
 
-    // 1. WHITE-HOT CORE — fully opaque, visible on any background
-    float core = exp(-d * 52.0) * 1.8;
+    float breathe = 0.78 + 0.22 * sin(uTime * 1.5 + uIntensity * 3.14);
 
-    // 2. INNER VOLUMETRIC GLOW — breathes with activity
-    float breathe  = 0.7 + 0.3 * sin(uTime * 1.8 + uIntensity * 3.14);
-    float innerGlow = exp(-d * 14.0) * 0.28 * breathe;
+    // 1. BRIGHT CORE — crisp white-hot center dot
+    float core = exp(-d * 62.0) * 3.0;
 
-    // 3. ORBITAL RING 1 — fast rotating segmented (6 arcs)
-    float r1   = 0.22 + uIntensity * 0.04;
-    float rw1  = 0.055;
-    float raw1 = exp(-pow((d - r1) / rw1, 2.0) * 8.0);
-    float seg1 = pow(max(0.0, sin(ang * 6.0 + uTime * 3.2)), 2.5);
-    float ring1 = raw1 * (0.35 + 0.65 * seg1);
+    // 2. INNER GLOW — soft volumetric halo around core
+    float innerGlow = exp(-d * 18.0) * 0.30 * breathe;
 
-    // 4. ORBITAL RING 2 — counter-rotating, 4 arcs, intensity-driven
-    float r2   = 0.35 + uIntensity * 0.04;
-    float rw2  = 0.045;
-    float raw2 = exp(-pow((d - r2) / rw2, 2.0) * 8.0);
-    float seg2 = pow(max(0.0, sin(ang * 4.0 - uTime * 2.0)), 2.0);
-    float ring2 = raw2 * (0.25 + 0.75 * seg2) * (0.4 + 0.6 * uIntensity);
+    // 3. PRIMARY RING — solid clean ring, subtle breathing shimmer
+    float r1     = 0.25 + uIntensity * 0.04;
+    float ring1  = exp(-pow((d - r1) / 0.038, 2.0) * 9.0);
+    float shimmer = 0.82 + 0.18 * sin(uTime * 1.8 + ang * 2.0 + uIntensity * 6.28);
+    ring1 *= shimmer;
 
-    // 5. PULSE WAVES — two staggered expanding rings
-    float speed = 0.45 + uIntensity * 0.25;
-    float t1 = mod(uTime * speed, 1.0);
-    float t2 = mod(uTime * speed + 0.5, 1.0);
-    float pw = 18.0;
-    float pulse1 = exp(-pow((d - t1 * 0.46) * pw, 2.0)) * pow(1.0 - t1, 2.0) * 0.85;
-    float pulse2 = exp(-pow((d - t2 * 0.46) * pw, 2.0)) * pow(1.0 - t2, 2.0) * 0.45;
+    // 4. SECONDARY RING — thinner outer orbit, only shows on hot stories
+    float r2   = 0.40 + uIntensity * 0.02;
+    float ring2 = exp(-pow((d - r2) / 0.025, 2.0) * 10.0) * uIntensity * 0.60;
 
-    // 6. OUTER ENERGY HALO — scales with importance
-    float halo = exp(-d * 5.5) * 0.06 * breathe * uIntensity;
+    // 5. PULSE WAVES — two clean expanding rings with fade
+    float speed  = 0.38 + uIntensity * 0.24;
+    float t1     = mod(uTime * speed, 1.0);
+    float t2     = mod(uTime * speed + 0.5, 1.0);
+    float pulse1 = exp(-pow((d - t1 * 0.46) * 24.0, 2.0)) * pow(1.0 - t1, 2.5) * 1.10;
+    float pulse2 = exp(-pow((d - t2 * 0.46) * 24.0, 2.0)) * pow(1.0 - t2, 2.5) * 0.55;
 
-    // Composite alpha
+    // 6. WIDE ATMOSPHERIC HALO — diffuse glow scales with intensity
+    float halo = exp(-d * 4.8) * 0.12 * breathe * (0.5 + 0.5 * uIntensity);
+
     float total = core + innerGlow + ring1 + ring2 + pulse1 + pulse2 + halo;
     float a = clamp(total * uOpacity, 0.0, 1.0);
 
     // Color: white-hot core → brand color → dim outer
     vec3 col = uColor;
-    col = mix(col, vec3(1.0), core * 0.65);
-    col += uColor * (ring1 + ring2) * 0.35;
+    col = mix(col, vec3(1.0), core * 0.72);        // white-hot at center
+    col += uColor * (ring1 + ring2) * 0.28;         // tint rings
+    col += vec3(1.0) * pulse1 * 0.15;               // bright pulse flash
 
     gl_FragColor = vec4(col, a);
   }
@@ -364,18 +380,18 @@ export class Globe {
     else this.renderer.outputEncoding = 3001;
 
     this.renderer.toneMapping        = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.82;  // lower = deeper shadows, richer blacks
+    this.renderer.toneMappingExposure = 0.72;  // darker exposure — preserves highlight detail
 
-    // ── Bloom: only for hotspots + city lights (not the planet surface) ──
+    // ── Bloom: surgical — only the absolute brightest cores should bloom ──
     this._composer = new EffectComposer(this.renderer);
     this._composer.addPass(new RenderPass(this.scene, this.camera));
 
     const isMobile = window.innerWidth < 768;
     const bloom = new UnrealBloomPass(
       new THREE.Vector2(innerWidth, innerHeight),
-      isMobile ? 0.22 : 0.36,  // controlled bloom
-      0.48,                     // medium radius
-      0.68,                     // threshold — only bright city cores bloom
+      isMobile ? 0.16 : 0.22,  // restrained — only megacity cores and hotspot centers
+      0.22,                     // tight radius — precise glow, no smear
+      0.90,                     // high threshold — catches only true bright peaks
     );
     this._composer.addPass(bloom);
     this._bloomPass = bloom;
@@ -554,8 +570,8 @@ export class Globe {
       side:           THREE.BackSide,
       depthWrite:     false,
     });
-    // 1.12 — visible halo ring, atmosphere wraps planet edge
-    this.scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.12, 64, 64), this._atmoMat));
+    // 1.035 — razor-thin atmosphere, physically accurate scale
+    this.scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.035, 64, 64), this._atmoMat));
   }
 
   // ── Hotspots ────────────────────────────────────────────────────────────────
@@ -566,7 +582,7 @@ export class Globe {
       uniforms: {
         uColor:     { value: new THREE.Color(color) },
         uTime:      { value: 0 },
-        uOpacity:   { value: 0.92 },
+        uOpacity:   { value: 0.70 },
         uIntensity: { value: intensity },
       },
       vertexShader:   HOTSPOT_VERT,
@@ -580,10 +596,9 @@ export class Globe {
     const isMobile   = window.innerWidth < 768;
     const count      = data._allNews?.length || 1;
     const countScale = Math.min(Math.log(count + 1) / Math.log(60), 1);
-    // Smaller, more elegant orbital nodes
     const visSize = isMobile
-      ? 0.055 + countScale * 0.035
-      : 0.038 + countScale * 0.032;
+      ? 0.068 + countScale * 0.040
+      : 0.052 + countScale * 0.038;
 
     const visMesh = new THREE.Mesh(new THREE.PlaneGeometry(visSize, visSize), mat);
     visMesh.position.copy(pos);
@@ -968,7 +983,7 @@ export class Globe {
   }
 
   clearHighlight() {
-    this.hotspots.forEach(h => { h.material.uniforms.uOpacity.value = 0.88; });
+    this.hotspots.forEach(h => { h.material.uniforms.uOpacity.value = 0.70; });
     this._selectedHotspot = null;
   }
 
@@ -1030,7 +1045,7 @@ export class Globe {
       } else {
         // No hover — return to base
         uni.uIntensity.value = base + (uni.uIntensity.value - base) * 0.92;
-        uni.uOpacity.value   = 0.92 + (uni.uOpacity.value - 0.92) * 0.92;
+        uni.uOpacity.value   = 0.70 + (uni.uOpacity.value - 0.70) * 0.92;
       }
     });
 
