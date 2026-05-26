@@ -6,6 +6,7 @@
   "description": "ORBIT — The Future of News",
   "scripts": {
     "dev": "vite --host",
+    "icons": "node scripts/generate-icons.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "cap:sync": "npx cap sync",

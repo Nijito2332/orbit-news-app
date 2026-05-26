@@ -9,6 +9,9 @@
   <meta name="theme-color" content="#07070F" />
   <title>ORBIT — The Future of News</title>
   <meta name="description" content="Navigate the world. Discover news. The future of information." />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="ORBIT" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -417,5 +420,11 @@
   <canvas id="ambient-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none"></canvas>
 
   <script type="module" src="src/js/app.js"></script>
+  <script>
+    // Register service worker only on web (not in Capacitor native shell)
+    if ('serviceWorker' in navigator && !window.Capacitor) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
