@@ -1,7 +1,4 @@
-// ─── ORBIT Icon Generator — pure Node.js, no dependencies ────────────────────
-// Generates apple-touch-icon.png (180), icon-192.png, icon-512.png
-// Run: node scripts/generate-icons.mjs
-
+// ─── ORBIT Icon Generator v2 — neon glow design, pure Node.js ────────────────
 import { deflateSync } from 'zlib';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
@@ -10,8 +7,8 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = join(__dirname, '..', 'public');
 
-// ── CRC32 for PNG chunks ──────────────────────────────────────────────────────
-const crcTable = (() => {
+// ── CRC32 ─────────────────────────────────────────────────────────────────────
+const CRC_TABLE = (() => {
   const t = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
     let c = n;
@@ -22,82 +19,103 @@ const crcTable = (() => {
 })();
 function crc32(buf) {
   let c = 0xffffffff;
-  for (const b of buf) c = (c >>> 8) ^ crcTable[(c ^ b) & 0xff];
+  for (const b of buf) c = (c >>> 8) ^ CRC_TABLE[(c ^ b) & 0xff];
   return (c ^ 0xffffffff) >>> 0;
 }
-
 function pngChunk(type, data) {
   const t = Buffer.from(type, 'ascii');
   const len = Buffer.alloc(4); len.writeUInt32BE(data.length);
-  const crcBuf = Buffer.alloc(4); crcBuf.writeUInt32BE(crc32(Buffer.concat([t, data])));
-  return Buffer.concat([len, t, data, crcBuf]);
+  const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(Buffer.concat([t, data])));
+  return Buffer.concat([len, t, data, crc]);
 }
 
-// ── Icon renderer ─────────────────────────────────────────────────────────────
-// Design: dark #07070F bg + outer cyan ring + inner purple ring + center dot
-// (the ◎ ORBIT bullseye mark, works at all sizes)
+// ── Gaussian glow kernel ──────────────────────────────────────────────────────
+function gauss(d, center, sigma) {
+  return Math.exp(-((d - center) ** 2) / (2 * sigma * sigma));
+}
+
+// ── Render one icon ───────────────────────────────────────────────────────────
 function renderIcon(size) {
   const cx = size / 2, cy = size / 2;
   const r  = size / 2;
 
-  // Ring radii (relative to half-size)
-  const outerRingOuter = r * 0.47;
-  const outerRingInner = r * 0.31;
-  const innerRingOuter = r * 0.20;
-  const innerRingInner = r * 0.09;
-  const centerDot      = r * 0.05;
+  // Design radii (relative to r)
+  const outerR = r * 0.435;
+  const innerR = r * 0.195;
 
-  // Brand colors
-  const bg     = [7,  7,  16];
-  const cyan   = [0,  212, 255];
-  const purple = [123, 47, 190];
-  const white  = [220, 240, 255];
-
-  function lerp(a, b, t) { return a + (b - a) * t; }
-  function lerpRGB(a, b, t) { return a.map((v, i) => Math.round(lerp(v, b[i], t))); }
-
-  // Coverage with smooth anti-aliasing (1.5px feather)
-  function ringCoverage(d, inner, outer) {
-    const feather = 1.5;
-    if (d > outer + feather || d < inner - feather) return 0;
-    const outerFade = d > outer - feather ? 1 - (d - (outer - feather)) / (feather * 2) : 1;
-    const innerFade = d < inner + feather ? 1 - ((inner + feather) - d) / (feather * 2) : 1;
-    return Math.max(0, Math.min(1, outerFade * innerFade));
-  }
-  function dotCoverage(d, radius) {
-    const feather = 1.5;
-    return Math.max(0, Math.min(1, 1 - (d - (radius - feather)) / (feather * 2)));
-  }
+  // Neon glow sigmas — white hot core → colored tube → diffuse halo
+  const O_CORE  = r * 0.018;   // outer ring white hot center
+  const O_TUBE  = r * 0.038;   // outer ring cyan tube
+  const O_HALO  = r * 0.095;   // outer ring diffuse halo
+  const I_CORE  = r * 0.014;
+  const I_TUBE  = r * 0.030;
+  const I_HALO  = r * 0.072;
+  const C_DOT   = r * 0.052;   // center glow (disc, center = 0)
+  const BG_GLOW = r * 0.62;    // subtle nebula from center
 
   const scanlines = [];
+
   for (let y = 0; y < size; y++) {
     const row = [0]; // PNG filter byte = None
     for (let x = 0; x < size; x++) {
       const dx = x - cx, dy = y - cy;
       const d  = Math.sqrt(dx * dx + dy * dy);
 
-      // Start with background
-      let pixel = [...bg];
+      // ── Start: background (HDR, clamp at end) ──
+      let fR = 7, fG = 7, fB = 16;
 
-      // Outer cyan ring
-      const outerC = ringCoverage(d, outerRingInner, outerRingOuter);
-      if (outerC > 0) pixel = lerpRGB(pixel, cyan, outerC);
+      // Background: very subtle deep-space radial glow (dark blue center)
+      const bg = gauss(d, 0, BG_GLOW);
+      fR += bg *  5; fG += bg *  8; fB += bg * 25;
 
-      // Inner purple ring
-      const innerC = ringCoverage(d, innerRingInner, innerRingOuter);
-      if (innerC > 0) pixel = lerpRGB(pixel, purple, innerC);
+      // ── OUTER RING — Cyan #00D4FF ─────────────────────────────────────────
+      // White-hot core
+      const oCore = gauss(d, outerR, O_CORE);
+      fR += oCore * 255 * 2.8;
+      fG += oCore * 255 * 2.8;
+      fB += oCore * 255 * 2.8;
+      // Cyan tube
+      const oTube = gauss(d, outerR, O_TUBE);
+      fR += oTube *   0 * 2.4;
+      fG += oTube * 212 * 2.4;
+      fB += oTube * 255 * 2.4;
+      // Cyan halo
+      const oHalo = gauss(d, outerR, O_HALO);
+      fR += oHalo *   0 * 0.28;
+      fG += oHalo * 140 * 0.28;
+      fB += oHalo * 200 * 0.28;
 
-      // Center white dot
-      const dotC = dotCoverage(d, centerDot);
-      if (dotC > 0) pixel = lerpRGB(pixel, white, dotC);
+      // ── INNER RING — Purple #7B2FBE ───────────────────────────────────────
+      const iCore = gauss(d, innerR, I_CORE);
+      fR += iCore * 255 * 2.2;
+      fG += iCore * 255 * 2.2;
+      fB += iCore * 255 * 2.2;
+      const iTube = gauss(d, innerR, I_TUBE);
+      fR += iTube * 180 * 2.0;
+      fG += iTube *  80 * 2.0;
+      fB += iTube * 255 * 2.0;
+      const iHalo = gauss(d, innerR, I_HALO);
+      fR += iHalo * 100 * 0.25;
+      fG += iHalo *  30 * 0.25;
+      fB += iHalo * 180 * 0.25;
 
-      row.push(...pixel);
+      // ── CENTER DOT — Bright cyan-white spark ──────────────────────────────
+      const cDot = gauss(d, 0, C_DOT);
+      fR += cDot * 200 * 1.8;
+      fG += cDot * 235 * 1.8;
+      fB += cDot * 255 * 1.8;
+
+      // Clamp HDR → [0, 255]
+      row.push(
+        Math.min(255, Math.round(fR)),
+        Math.min(255, Math.round(fG)),
+        Math.min(255, Math.round(fB)),
+      );
     }
     scanlines.push(Buffer.from(row));
   }
 
-  const raw  = Buffer.concat(scanlines);
-  const idat = deflateSync(raw, { level: 9 });
+  const idat = deflateSync(Buffer.concat(scanlines), { level: 9 });
 
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(size, 0);
@@ -105,26 +123,18 @@ function renderIcon(size) {
   ihdr[8] = 8; ihdr[9] = 2; // 8-bit RGB
 
   return Buffer.concat([
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), // PNG signature
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
     pngChunk('IHDR', ihdr),
     pngChunk('IDAT', idat),
     pngChunk('IEND', Buffer.alloc(0)),
   ]);
 }
 
-// ── Generate all sizes ────────────────────────────────────────────────────────
+// ── Output ────────────────────────────────────────────────────────────────────
 mkdirSync(OUT, { recursive: true });
-
-const icons = [
-  { size: 180, name: 'apple-touch-icon.png' },
-  { size: 192, name: 'icon-192.png' },
-  { size: 512, name: 'icon-512.png' },
-];
-
-for (const { size, name } of icons) {
+for (const [size, name] of [[180, 'apple-touch-icon.png'], [192, 'icon-192.png'], [512, 'icon-512.png']]) {
   const png = renderIcon(size);
   writeFileSync(join(OUT, name), png);
-  console.log(`✓ public/${name} (${size}×${size}, ${(png.length / 1024).toFixed(1)} KB)`);
+  console.log(`✓ public/${name}  (${size}×${size}, ${(png.length/1024).toFixed(1)} KB)`);
 }
-
-console.log('\nIcons generated. Run: npm run build && npx cap sync');
+console.log('\nDone. Run: npm run build && git add -A && git commit -m "update icons"');
