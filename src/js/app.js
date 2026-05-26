@@ -235,11 +235,8 @@ function spawnHotspots(news, animate = false) {
     forIntensity.forEach(a => { catCounts[a.category] = (catCounts[a.category] || 0) + 1; });
     const domCat = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'world';
 
-    // Color: most countries stay cyan, only genuinely viral ones change
-    const hotColor =
-      avgIntensity > 0.88 ? '#FF3B3B' :   // breaking — red (contrasts city lights)
-      avgIntensity > 0.76 ? '#C084FC' :   // significant — violet
-                            '#00D4FF';     // normal — ORBIT cyan
+    // Color by dominant category — same color as sidebar and country outline
+    const hotColor = (CATEGORIES[domCat] || CATEGORIES.world).color;
 
     _globe.addHotspot({
       id:       `hub-${country}`,
@@ -409,12 +406,15 @@ async function boot() {
     // Called once on first connection with full story set
     onInit: async (stories, stats) => {
       console.log(`[App] Init: ${stories.length} stories from server`);
+      // Server still warming up — REST path or onUpdate will reveal the app
+      if (stories.length === 0) return;
       progress(0.90, `Loading ${stories.length} live stories…`);
       _liveNewsRaw = stories;
       await displayNews(_liveNewsRaw);
       progress(1.0);
 
-      // Reveal app
+      // Reveal app (guard: REST fast path may have already done this)
+      if (screen.classList.contains('hidden')) return;
       screen.style.transition = 'opacity .5s ease';
       screen.style.opacity = '0';
       setTimeout(() => screen.classList.add('hidden'), 500);
@@ -441,6 +441,19 @@ async function boot() {
       _ui?.refreshTrending();
       // Ambient pulse on live update (no color change — always blue)
       if (_ambient) _ambient.setActivity(_activity);
+      // If onInit got 0 stories and loading screen is still up, reveal now
+      if (!screen.classList.contains('hidden') && _liveNewsRaw.length > 0) {
+        progress(1.0);
+        screen.style.transition = 'opacity .5s ease';
+        screen.style.opacity = '0';
+        setTimeout(() => screen.classList.add('hidden'), 500);
+        app.classList.remove('hidden');
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+        setTimeout(() => {
+          _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
+          setTimeout(() => _globe.pulseCategories(_chronos.categories, 2500), 2000);
+        }, 600);
+      }
     },
 
     // Connection error — show offline mode

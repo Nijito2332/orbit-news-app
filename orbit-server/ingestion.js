@@ -96,7 +96,7 @@ async function fetchRSSFeed(feed) {
     items = parsed.items || [];
   } catch(_) { return []; }
 
-  return items.slice(0, 10).map((item, i) => {  // 10 items per feed — safe on Fly.io 1GB
+  return items.slice(0, 12).map((item, i) => {  // 12 items per feed — safe on Fly.io 1GB
     const title = strip(item.title || '');
     if (!title || title.length < 5) return null;
     const coords = coordsFor(feed.country);

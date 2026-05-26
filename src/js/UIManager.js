@@ -247,16 +247,8 @@ export class UIManager {
       return aRank - bRank;
     });
 
-    // Add a subtle "top for you" dot on the top 2 interest categories
-    rest.forEach((item, idx) => {
+    rest.forEach(item => {
       item.querySelector('.interest-dot')?.remove();
-      if (interests.includes(item.dataset.category) && idx < 2) {
-        const dot = document.createElement('span');
-        dot.className = 'interest-dot';
-        dot.title = 'Based on your reading';
-        dot.style.cssText = 'width:5px;height:5px;border-radius:50%;background:#00D4FF;flex-shrink:0;opacity:0.8;margin-left:auto';
-        item.appendChild(dot);
-      }
       nav.appendChild(item);
     });
     if (all) nav.prepend(all);
@@ -1322,8 +1314,8 @@ export class UIManager {
 
     this._showHotspotPreview(data.country, name, count, trending, pct, top, x, y);
 
-    // Show country outline — color matches hotspot color
-    const outlineColor = intense > 0.75 ? '#FF8C35' : intense > 0.55 ? '#A855F7' : '#00D4FF';
+    // Show country outline — same color as globe hotspot for that category
+    const outlineColor = (CATEGORIES[data.category] || CATEGORIES.world).color;
     this.globe.showCountryOutline?.(data.country, outlineColor);
   }
 
@@ -1479,12 +1471,14 @@ export class UIManager {
       allNews.forEach(n => { counts[n.category] = (counts[n.category] || 0) + 1; });
 
       hubCatsEl.innerHTML = catDefs.map(c => {
-        const count   = c.cat === 'all' ? allNews.length : (counts[c.cat] || 0);
-        const isEmpty = count === 0 && c.cat !== 'all';
-        const badge   = count > 0 && c.cat !== 'all'
+        const count    = c.cat === 'all' ? allNews.length : (counts[c.cat] || 0);
+        const isGlobal = count === 0 && c.cat !== 'all';
+        const badge    = count > 0 && c.cat !== 'all'
           ? `<span style="font-size:9px;background:rgba(255,255,255,0.18);padding:1px 5px;border-radius:99px;margin-left:4px;font-weight:700">${count}</span>`
-          : '';
-        return `<button class="hub-cat" data-cat="${c.cat}" style="opacity:${isEmpty?'0.3':'1'};${isEmpty?'pointer-events:none':''}">
+          : isGlobal
+            ? `<span style="font-size:9px;background:rgba(0,212,255,0.15);color:#00D4FF;padding:1px 5px;border-radius:99px;margin-left:4px;font-weight:700">global</span>`
+            : '';
+        return `<button class="hub-cat" data-cat="${c.cat}" style="opacity:${isGlobal?'0.65':'1'}">
           ${c.icon} ${esc(c.label)}${badge}
         </button>`;
       }).join('');
@@ -1533,6 +1527,13 @@ export class UIManager {
       if (!news.length) news = pool;
     } else {
       news = pool.filter(n => n.category === cat);
+      if (!news.length) {
+        // No local articles for this category — show top global content instead
+        news = this._pool()
+          .filter(n => n.category === cat && !n.isMicro)
+          .sort((a, b) => (b.trendScore || b.intensity || 0) - (a.trendScore || a.intensity || 0))
+          .slice(0, 15);
+      }
       if (!news.length) news = pool;
     }
 
