@@ -4,7 +4,7 @@
 # SSH:    flyctl ssh console
 
 app            = "orbit-news-engine"
-primary_region = "mad"          # Madrid — closest to Spain, low latency EU/US
+primary_region = "cdg"          # Paris — Madrid deprecated, CDG is closest EU region
 
 kill_signal  = "SIGTERM"
 kill_timeout = 30
