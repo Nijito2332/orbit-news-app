@@ -1,6 +1,6 @@
 // ─── ORBIT Service Worker — Network-first for news, Cache-first for shell ────
-const CACHE   = 'orbit-shell-v1';
-const RUNTIME = 'orbit-runtime-v1';
+const CACHE   = 'orbit-shell-v4';
+const RUNTIME = 'orbit-runtime-v4';
 
 // App shell — cache on install, never expire
 const SHELL = [
@@ -52,7 +52,20 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // App shell assets — cache-first, fallback to network
+  // index.html — always network-first so new deploys show immediately
+  if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('/index.html')) {
+    e.respondWith(
+      fetch(e.request).then(fresh => {
+        if (fresh.ok) {
+          caches.open(CACHE).then(c => c.put(e.request, fresh.clone()));
+        }
+        return fresh;
+      }).catch(() => caches.open(CACHE).then(c => c.match('./') || c.match('./index.html')))
+    );
+    return;
+  }
+
+  // Other app shell assets — cache-first, fallback to network
   if (url.origin === location.origin) {
     e.respondWith(
       caches.open(CACHE).then(async cache => {
@@ -63,10 +76,6 @@ self.addEventListener('fetch', e => {
           if (fresh.ok) cache.put(e.request, fresh.clone());
           return fresh;
         } catch (_) {
-          // Offline fallback: return cached index.html for navigation
-          if (e.request.mode === 'navigate') {
-            return cache.match('./') || cache.match('./index.html');
-          }
           throw _;
         }
       })
