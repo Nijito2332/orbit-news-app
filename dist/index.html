@@ -387,8 +387,11 @@
   <canvas id="ambient-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none"></canvas>
 
   <script>
-    if ('serviceWorker' in navigator && !window.Capacitor) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    // Unregister all service workers to ensure fresh deploys always show immediately
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      });
     }
 
     const LEGAL = {
