@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "buildCommand": "npx vite build --force",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install --prefer-online",
   "rewrites": [
