@@ -17,9 +17,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script type="module" crossorigin src="./assets/index-D_QL7ZJQ.js"></script>
+  <script type="module" crossorigin src="./assets/index-CuCExrO6.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/three-DhVG4OGD.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-Dtqop18X.css">
+  <link rel="stylesheet" crossorigin href="./assets/index-CMZ0Hah6.css">
 </head>
 <body>
 
@@ -118,67 +118,7 @@
     </div>
   </div>
 
-  <!-- ONBOARDING -->
-  <div id="onboarding" class="onboarding hidden">
-    <div class="ob-step active" data-step="1">
-      <div class="ob-logo">
-        <img src="./favicon.svg" class="ob-logo-icon" alt="ORBIT" draggable="false" />
-        <span class="ob-logo-text">ORBIT</span>
-      </div>
-      <h1 class="ob-title" data-i18n="ob_title">The Future of News</h1>
-      <p class="ob-desc" data-i18n="ob_desc">Navigate the world. Discover stories that matter.</p>
-      <button class="ob-btn" id="ob-next-1">
-        <span data-i18n="ob_explore">Explore</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-      <div class="ob-skip" id="ob-skip" data-i18n="ob_skip">Skip intro</div>
-    </div>
-    <div class="ob-step" data-step="2">
-      <div class="ob-step-badge">01</div>
-      <h2 class="ob-title" data-i18n="ob1_h">Navigate the Globe</h2>
-      <p class="ob-desc" data-i18n="ob1_p">Spin a live 3D Earth. Tap glowing hotspots to explore stories.</p>
-      <div class="ob-features">
-        <div class="ob-feature"><span style="font-size:20px">🌍</span><span>Real-time sun position</span></div>
-        <div class="ob-feature"><span style="font-size:20px">⚡</span><span>Live news pulses</span></div>
-        <div class="ob-feature"><span style="font-size:20px">🔍</span><span>Zoom into any region</span></div>
-      </div>
-      <button class="ob-btn" id="ob-next-2">
-        <span data-i18n="ob_next">Next</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
-    <div class="ob-step" data-step="3">
-      <div class="ob-step-badge">02</div>
-      <h2 class="ob-title" data-i18n="ob2_h">Pick Your Interests</h2>
-      <p class="ob-desc" data-i18n="ob2_p">ORBIT's AI learns what you love.</p>
-      <!-- 5 categories — matches the real app exactly, no duplicates -->
-      <div class="ob-categories-grid">
-        <button class="ob-cat selected">⚽ <span data-i18n="cat_sports">Sports</span></button>
-        <button class="ob-cat selected">🎬 <span data-i18n="cat_entertainment">Entertainment</span></button>
-        <button class="ob-cat selected">🎮 <span data-i18n="cat_gaming">Gaming</span></button>
-        <button class="ob-cat selected">💻 <span data-i18n="cat_tech">Technology</span></button>
-        <button class="ob-cat">🌍 <span data-i18n="cat_world">World</span></button>
-        <button class="ob-cat">🔥 <span data-i18n="cat_trending">Trending</span></button>
-      </div>
-      <button class="ob-btn" id="ob-next-3">
-        <span data-i18n="ob_continue">Continue</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
-    <div class="ob-step" data-step="4">
-      <div class="ob-ready-icon">◎</div>
-      <h2 class="ob-title" data-i18n="ob3_h">Your World Awaits</h2>
-      <p class="ob-desc" data-i18n="ob3_p">Everything happening on Earth, beautifully visualized for you.</p>
-      <button class="ob-btn ob-btn-launch" id="ob-launch">
-        <span data-i18n="ob_launch">Launch ORBIT</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
-    <div class="ob-dots">
-      <span class="ob-dot active"></span><span class="ob-dot"></span>
-      <span class="ob-dot"></span><span class="ob-dot"></span>
-    </div>
-  </div>
+  <!-- Tutorial overlay is injected dynamically by TutorialSystem.js -->
 
   <!-- MAIN APP -->
   <div id="app" class="app hidden">
@@ -217,6 +157,11 @@
         <button class="topbar-btn orbit-plus-topbar-btn" id="btn-orbit-plus" title="ORBIT+">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <span class="tb-txt">ORBIT+</span>
+        </button>
+
+        <!-- Help / Tutorial button -->
+        <button class="topbar-icon-btn" id="btn-tutorial" title="Tutorial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01" stroke-linecap="round"/></svg>
         </button>
 
         <button class="topbar-icon-btn" id="btn-profile">
