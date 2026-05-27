@@ -372,35 +372,164 @@ h1,h2,h3,h4 { font-family: var(--font-display); }
 .loading-label { font-size: 12px; color: var(--text-30); letter-spacing: .05em; font-family: var(--font-display); }
 
 /* ════════════════════════════════════════════════════════
-   ONBOARDING
+   ORBIT TUTORIAL SYSTEM — cinematic onboarding overlay
    ════════════════════════════════════════════════════════ */
-.onboarding {
-  position: fixed; inset: 0; z-index: 1000;
-  background: radial-gradient(ellipse at 50% 60%, #0D0D2E, var(--bg) 70%);
-  display: flex; align-items: center; justify-content: center;
+
+/* ── Container — full-screen, globe stays interactive behind ── */
+.obt {
+  position: fixed; inset: 0;
+  z-index: 8900;
+  pointer-events: none;    /* globe remains interactive by default */
 }
-.ob-step { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; opacity: 0; pointer-events: none; transition: opacity .5s ease; }
-.ob-step.active { opacity: 1; pointer-events: all; }
-.ob-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
-.ob-logo-icon { width: 40px; height: 40px; flex-shrink: 0; display: block; }
-.ob-logo-text { font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: .3em; }
-.ob-step-badge { font-size: 11px; font-weight: 600; letter-spacing: .3em; color: var(--blue); background: rgba(0,212,255,.1); padding: 4px 12px; border-radius: 99px; border: 1px solid rgba(0,212,255,.2); margin-bottom: 20px; }
-.ob-title { font-family: var(--font-display); font-size: clamp(34px,7vw,56px); font-weight: 700; line-height: 1.05; text-align: center; margin-bottom: 16px; letter-spacing: -.02em; }
-.ob-desc { font-size: 16px; color: var(--text-70); line-height: 1.6; text-align: center; max-width: 360px; margin-bottom: 40px; }
-.ob-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; width: 100%; max-width: 320px; }
-.ob-feature { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 12px 16px; font-size: 14px; color: var(--text-70); }
-.ob-categories-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 40px; width: 100%; max-width: 340px; }
-.ob-cat { padding: 12px 16px; border-radius: var(--r-sm); border: 1px solid var(--border); background: rgba(255,255,255,.04); font-size: 14px; color: var(--text-50); transition: all var(--t-fast); text-align: left; }
-.ob-cat.selected { border-color: var(--blue); background: rgba(0,212,255,.1); color: var(--blue); }
-.ob-btn { display: flex; align-items: center; gap: 8px; padding: 14px 28px; background: linear-gradient(135deg, var(--blue), var(--purple)); border-radius: 99px; font-family: var(--font-display); font-size: 16px; font-weight: 600; color: #fff; transition: all var(--t-fast); box-shadow: 0 4px 24px rgba(0,212,255,.3); }
-.ob-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,212,255,.4); }
-.ob-btn svg { width: 18px; height: 18px; }
-.ob-btn-launch { padding: 16px 36px; font-size: 18px; }
-.ob-skip { position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%); font-size: 13px; color: var(--text-30); cursor: pointer; }
-.ob-ready-icon { font-size: 80px; margin-bottom: 24px; animation: float 3s ease-in-out infinite; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.ob-dots { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
-.ob-dot { width: 6px; height: 6px; border-radius: 99px; background: var(--text-30); transition: all var(--t-normal); }
-.ob-dot.active { width: 24px; background: var(--blue); }
+
+/* ── Spotlight veil — purely visual, no pointer blocking ── */
+.obt-veil {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.42);
+  pointer-events: none;
+  transition: background 0.55s ease;
+}
+
+/* ── Glassmorphism floating panel ── */
+.obt-panel {
+  position: absolute;
+  pointer-events: all;     /* only the panel captures clicks */
+  width: min(420px, calc(100vw - 32px));
+  background: rgba(6,6,14,0.82);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(0,212,255,0.22);
+  border-radius: 22px;
+  padding: 30px 30px 26px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03) inset,
+    0 24px 80px rgba(0,0,0,0.65),
+    0 0 40px rgba(0,212,255,0.06);
+}
+
+/* Panel positions */
+.obt-panel-center  { top: 50%; left: 50%; }
+.obt-panel-bottom  { bottom: clamp(28px, 5vw, 56px); left: 50%; }
+.obt-panel-sidebar { top: 50%; left: 196px; }
+
+/* ── Close button ── */
+.obt-x {
+  position: absolute; top: 14px; right: 14px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.40);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all var(--t-fast);
+}
+.obt-x:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+
+/* ── Step badge  e.g. "01" ── */
+.obt-top { display: flex; align-items: center; margin-bottom: 14px; }
+.obt-badge {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.18em;
+  color: #00D4FF; background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.22);
+  padding: 3px 12px; border-radius: 99px;
+  font-family: var(--font-display);
+}
+
+/* ── Step icon (emoji) ── */
+.obt-icon { font-size: 38px; line-height: 1; margin-bottom: 10px; }
+
+/* ── Title ── */
+.obt-title {
+  font-family: var(--font-display);
+  font-size: clamp(19px, 3.5vw, 26px);
+  font-weight: 700; line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: #fff; margin: 0 0 10px;
+}
+
+/* ── Description ── */
+.obt-desc {
+  font-size: 14px; line-height: 1.62;
+  color: rgba(255,255,255,0.58);
+  margin: 0 0 18px;
+}
+
+/* ── Tip hint box ── */
+.obt-hint {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: rgba(0,212,255,0.80);
+  background: rgba(0,212,255,0.07);
+  border: 1px solid rgba(0,212,255,0.16);
+  padding: 8px 14px; border-radius: 10px;
+  margin-bottom: 20px;
+}
+.obt-hint-ico { font-size: 14px; flex-shrink: 0; }
+
+/* ── Footer: dots + CTA ── */
+.obt-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+
+/* Progress dots */
+.obt-dots { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+.obt-dot {
+  width: 6px; height: 6px; border-radius: 99px;
+  background: rgba(255,255,255,0.18);
+  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+.obt-dot-on {
+  width: 20px; background: #00D4FF;
+  box-shadow: 0 0 8px rgba(0,212,255,0.55);
+}
+
+/* CTA button */
+.obt-cta {
+  padding: 10px 22px; border-radius: 12px;
+  font-size: 13px; font-weight: 600;
+  font-family: var(--font-display);
+  cursor: pointer; transition: all 0.2s ease;
+  background: rgba(0,212,255,0.13);
+  border: 1px solid rgba(0,212,255,0.30);
+  color: #00D4FF; white-space: nowrap;
+}
+.obt-cta:hover {
+  background: rgba(0,212,255,0.22);
+  border-color: rgba(0,212,255,0.50);
+  box-shadow: 0 0 18px rgba(0,212,255,0.2);
+}
+.obt-cta-launch {
+  background: linear-gradient(135deg, rgba(0,212,255,0.22), rgba(192,132,252,0.18));
+  border-color: rgba(0,212,255,0.38);
+  color: #fff;
+}
+.obt-cta-launch:hover {
+  background: linear-gradient(135deg, rgba(0,212,255,0.32), rgba(192,132,252,0.28));
+  box-shadow: 0 0 24px rgba(0,212,255,0.25);
+}
+
+/* ── Contextual element glows ── */
+.obt-glow {
+  animation: obt-glow-pulse 1.6s ease-in-out infinite;
+}
+.obt-glow-btn {
+  animation: obt-glow-pulse 1.6s ease-in-out infinite;
+  position: relative; z-index: 1;
+}
+@keyframes obt-glow-pulse {
+  0%,100% { box-shadow: 0 0 0 2px rgba(0,212,255,0.35), 0 0 16px rgba(0,212,255,0.18); }
+  50%      { box-shadow: 0 0 0 3px rgba(0,212,255,0.55), 0 0 28px rgba(0,212,255,0.32); }
+}
+
+/* ── Help button in topnav ── */
+#btn-tutorial { color: rgba(255,255,255,0.45); transition: all var(--t-fast); }
+#btn-tutorial:hover { color: #00D4FF; box-shadow: 0 0 14px rgba(0,212,255,0.22); background: rgba(0,212,255,0.08); }
+
+/* ── Mobile adjustments ── */
+@media (max-width: 767px) {
+  .obt-panel { padding: 24px 20px 22px; }
+  .obt-panel-bottom  { bottom: 80px; }
+  .obt-panel-sidebar { top: auto; left: 12px; right: 12px; bottom: 90px; width: auto; }
+  .obt-title  { font-size: 18px; }
+  .obt-desc   { font-size: 13px; }
+}
 
 /* ════════════════════════════════════════════════════════
    APP SHELL

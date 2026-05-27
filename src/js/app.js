@@ -15,6 +15,7 @@ import { VERSION, CHANGELOG, shouldShowChangelog, markChangelogSeen } from './ve
 import { detect as chronosDetect, recordSignal }  from './ChronosEngine.js';
 import { adaptFeedToTime, activityLevel }          from './TimeContextEngine.js';
 import { AmbientCanvas }                           from './AmbientCanvas.js';
+import { TutorialSystem }                          from './TutorialSystem.js';
 
 // ─── Capacitor ────────────────────────────────────────────────────────────────
 const isCapacitor = typeof window !== 'undefined' && !!window.Capacitor;
@@ -73,24 +74,9 @@ const CENTROIDS = {
   GH:{lat:7.9,lng:-1.0},MA:{lat:31.8,lng:-7.1},
 };
 
-// ─── Onboarding ───────────────────────────────────────────────────────────────
-const FIRST_VISIT = 'orbit_v1';
-let _step = 1;
-function showStep(s) {
-  document.querySelectorAll('.ob-step').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.ob-dot').forEach((d, i) => d.classList.toggle('active', i + 1 === s));
-  document.querySelector(`.ob-step[data-step="${s}"]`)?.classList.add('active');
-  _step = s;
-}
-function launchApp() {
-  const ob = document.getElementById('onboarding');
-  ob.style.transition = 'opacity .6s ease'; ob.style.opacity = '0';
-  setTimeout(() => ob.classList.add('hidden'), 600);
-  localStorage.setItem(FIRST_VISIT, '1');
-}
-
 // ─── Global state ─────────────────────────────────────────────────────────────
 let _globe       = null;
+let _tutorial    = null;
 let _authResolve = null;
 let _chronosSlot = 'morning'; // updated after chronos detect
 
@@ -397,6 +383,30 @@ async function boot() {
 
   applyAll();
 
+  // Init tutorial
+  _tutorial = new TutorialSystem(_globe);
+  document.getElementById('btn-tutorial')?.addEventListener('click', () => _tutorial?.reopen());
+
+  // ── Reveal helper (deduped across onInit / onUpdate / REST / fallback) ──────
+  let _revealed = false;
+  function _revealApp() {
+    if (_revealed) return;
+    _revealed = true;
+    progress(1.0);
+    screen.style.transition = 'opacity .5s ease';
+    screen.style.opacity = '0';
+    setTimeout(() => screen.classList.add('hidden'), 500);
+    app.classList.remove('hidden');
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+    setTimeout(() => {
+      _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
+      setTimeout(() => _globe.pulseCategories(_chronos.categories, 2500), 2000);
+    }, 600);
+    setTimeout(() => _ui?.refreshTrending(), 800);
+    // Start tutorial after fly-from-space lands (600ms delay + 3200ms anim + 1s buffer)
+    setTimeout(() => _tutorial?.start(), 4800);
+  }
+
   // ── Connect to ORBIT Realtime Engine ──────────────────────────────────────
   progress(0.75, 'Sincronizando con 800+ fuentes globales…');
 
@@ -413,24 +423,7 @@ async function boot() {
       await displayNews(_liveNewsRaw);
       progress(1.0);
 
-      // Reveal app (guard: REST fast path may have already done this)
-      if (screen.classList.contains('hidden')) return;
-      screen.style.transition = 'opacity .5s ease';
-      screen.style.opacity = '0';
-      setTimeout(() => screen.classList.add('hidden'), 500);
-      app.classList.remove('hidden');
-
-      // Re-fire resize so renderer matches actual post-auth viewport
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
-
-      // Refresh trending bar with real topics from loaded news
-      setTimeout(() => _ui?.refreshTrending(), 800);
-
-      // Cinematic Chronos spawn — fly in from space to time-context position
-      setTimeout(() => {
-        _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
-        setTimeout(() => _globe.pulseCategories(_chronos.categories, 2500), 2000);
-      }, 600);
+      _revealApp();
     },
 
     // Called whenever server pushes new stories (every ~90 seconds)
@@ -442,18 +435,7 @@ async function boot() {
       // Ambient pulse on live update (no color change — always blue)
       if (_ambient) _ambient.setActivity(_activity);
       // If onInit got 0 stories and loading screen is still up, reveal now
-      if (!screen.classList.contains('hidden') && _liveNewsRaw.length > 0) {
-        progress(1.0);
-        screen.style.transition = 'opacity .5s ease';
-        screen.style.opacity = '0';
-        setTimeout(() => screen.classList.add('hidden'), 500);
-        app.classList.remove('hidden');
-        setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
-        setTimeout(() => {
-          _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
-          setTimeout(() => _globe.pulseCategories(_chronos.categories, 2500), 2000);
-        }, 600);
-      }
+      if (_liveNewsRaw.length > 0) _revealApp();
     },
 
     // Connection error — show offline mode
@@ -480,18 +462,7 @@ async function boot() {
           console.log(`[App] Fast REST load: ${stories.length} stories`);
           _liveNewsRaw = stories;
           await displayNews(_liveNewsRaw);
-          progress(1.0);
-          // Reveal app immediately
-          screen.style.transition = 'opacity .5s ease';
-          screen.style.opacity = '0';
-          setTimeout(() => screen.classList.add('hidden'), 500);
-          app.classList.remove('hidden');
-          setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
-          setTimeout(() => {
-            _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
-            setTimeout(() => _globe.pulseCategories(_chronos.categories, 2500), 2000);
-          }, 600);
-          setTimeout(() => _ui?.refreshTrending(), 800);
+          _revealApp();
         }
       }
     } catch(_) { /* SSE will handle it */ }
@@ -506,21 +477,10 @@ async function boot() {
         _liveNewsRaw = ensureDensity([]);
         await displayNews(_liveNewsRaw);
       } finally {
-        screen.style.opacity = '0';
-        setTimeout(() => screen.classList.add('hidden'), 500);
-        app.classList.remove('hidden');
-        _globe.flyFromSpace(_chronos.spawnLat, _chronos.spawnLng, 4.0, 3200);
+        _revealApp();
       }
     }
   }, 12_000);
-
-  // Onboarding
-  document.querySelectorAll('.ob-cat').forEach(b => b.addEventListener('click', () => b.classList.toggle('selected')));
-  document.getElementById('ob-next-1')?.addEventListener('click', () => showStep(2));
-  document.getElementById('ob-next-2')?.addEventListener('click', () => showStep(3));
-  document.getElementById('ob-next-3')?.addEventListener('click', () => showStep(4));
-  document.getElementById('ob-launch')?.addEventListener('click', launchApp);
-  document.getElementById('ob-skip')?.addEventListener('click',   launchApp);
 
   // ORBIT+ topbar button
   document.getElementById('btn-orbit-plus')?.addEventListener('click', () => openOrbitPlus('topbar'));

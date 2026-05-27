@@ -27,7 +27,7 @@
     <!-- Left panel: branding + form -->
     <div class="aw-left">
       <div class="aw-logo">
-        <span class="aw-logo-icon">◎</span>
+        <img src="./favicon.svg" class="aw-logo-icon" alt="ORBIT" draggable="false" />
         <span class="aw-logo-text">ORBIT</span>
       </div>
 
@@ -71,7 +71,7 @@
         </button>
       </form>
 
-      <p class="aw-disclaimer">Al continuar aceptas los Términos de uso y la Política de privacidad de ORBIT.</p>
+      <p class="aw-disclaimer">Al continuar aceptas los <button type="button" onclick="openLegal('tos')"  style="background:none;border:none;color:#00D4FF;cursor:pointer;font-size:inherit;font-family:inherit;padding:0;text-decoration:underline">Términos de Uso</button> y la <button type="button" onclick="openLegal('priv')" style="background:none;border:none;color:#00D4FF;cursor:pointer;font-size:inherit;font-family:inherit;padding:0;text-decoration:underline">Política de Privacidad</button> de ORBIT.</p>
 
       <!-- Features pills -->
       <div class="aw-pills">
@@ -106,7 +106,7 @@
   <div id="loading-screen" class="loading-screen hidden">
     <div class="loading-content">
       <div class="loading-logo">
-        <div class="loading-logo-ring"></div>
+        <img src="./favicon.svg" class="loading-logo-img" alt="ORBIT" draggable="false" />
         <span class="loading-logo-text">ORBIT</span>
       </div>
       <div class="loading-bar-wrap">
@@ -116,67 +116,7 @@
     </div>
   </div>
 
-  <!-- ONBOARDING -->
-  <div id="onboarding" class="onboarding hidden">
-    <div class="ob-step active" data-step="1">
-      <div class="ob-logo">
-        <span class="ob-logo-icon">◎</span>
-        <span class="ob-logo-text">ORBIT</span>
-      </div>
-      <h1 class="ob-title" data-i18n="ob_title">The Future of News</h1>
-      <p class="ob-desc" data-i18n="ob_desc">Navigate the world. Discover stories that matter.</p>
-      <button class="ob-btn" id="ob-next-1">
-        <span data-i18n="ob_explore">Explore</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-      <div class="ob-skip" id="ob-skip" data-i18n="ob_skip">Skip intro</div>
-    </div>
-    <div class="ob-step" data-step="2">
-      <div class="ob-step-badge">01</div>
-      <h2 class="ob-title" data-i18n="ob1_h">Navigate the Globe</h2>
-      <p class="ob-desc" data-i18n="ob1_p">Spin a live 3D Earth. Tap glowing hotspots to explore stories.</p>
-      <div class="ob-features">
-        <div class="ob-feature"><span style="font-size:20px">🌍</span><span>Real-time sun position</span></div>
-        <div class="ob-feature"><span style="font-size:20px">⚡</span><span>Live news pulses</span></div>
-        <div class="ob-feature"><span style="font-size:20px">🔍</span><span>Zoom into any region</span></div>
-      </div>
-      <button class="ob-btn" id="ob-next-2">
-        <span data-i18n="ob_next">Next</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
-    <div class="ob-step" data-step="3">
-      <div class="ob-step-badge">02</div>
-      <h2 class="ob-title" data-i18n="ob2_h">Pick Your Interests</h2>
-      <p class="ob-desc" data-i18n="ob2_p">ORBIT's AI learns what you love.</p>
-      <!-- 5 categories — matches the real app exactly, no duplicates -->
-      <div class="ob-categories-grid">
-        <button class="ob-cat selected">⚽ <span data-i18n="cat_sports">Sports</span></button>
-        <button class="ob-cat selected">🎬 <span data-i18n="cat_entertainment">Entertainment</span></button>
-        <button class="ob-cat selected">🎮 <span data-i18n="cat_gaming">Gaming</span></button>
-        <button class="ob-cat selected">💻 <span data-i18n="cat_tech">Technology</span></button>
-        <button class="ob-cat">🌍 <span data-i18n="cat_world">World</span></button>
-        <button class="ob-cat">🔥 <span data-i18n="cat_trending">Trending</span></button>
-      </div>
-      <button class="ob-btn" id="ob-next-3">
-        <span data-i18n="ob_continue">Continue</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
-    <div class="ob-step" data-step="4">
-      <div class="ob-ready-icon">◎</div>
-      <h2 class="ob-title" data-i18n="ob3_h">Your World Awaits</h2>
-      <p class="ob-desc" data-i18n="ob3_p">Everything happening on Earth, beautifully visualized for you.</p>
-      <button class="ob-btn ob-btn-launch" id="ob-launch">
-        <span data-i18n="ob_launch">Launch ORBIT</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
-    <div class="ob-dots">
-      <span class="ob-dot active"></span><span class="ob-dot"></span>
-      <span class="ob-dot"></span><span class="ob-dot"></span>
-    </div>
-  </div>
+  <!-- Tutorial overlay is injected dynamically by TutorialSystem.js -->
 
   <!-- MAIN APP -->
   <div id="app" class="app hidden">
@@ -186,7 +126,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <div class="topbar-logo">
-          <span class="topbar-logo-icon">◎</span>
+          <img src="./favicon.svg" class="topbar-logo-icon" alt="ORBIT" draggable="false" />
           <span class="topbar-logo-text">ORBIT</span>
         </div>
       </div>
@@ -215,6 +155,11 @@
         <button class="topbar-btn orbit-plus-topbar-btn" id="btn-orbit-plus" title="ORBIT+">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <span class="tb-txt">ORBIT+</span>
+        </button>
+
+        <!-- Help / Tutorial button -->
+        <button class="topbar-icon-btn" id="btn-tutorial" title="Tutorial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01" stroke-linecap="round"/></svg>
         </button>
 
         <button class="topbar-icon-btn" id="btn-profile">
@@ -385,6 +330,11 @@
         <div class="stat-item"><span class="stat-num">23</span><span class="stat-lbl" data-i18n="profile_saved">Saved</span></div>
         <div class="stat-item"><span class="stat-num">8</span><span class="stat-lbl" data-i18n="profile_countries">Countries</span></div>
       </div>
+      <div style="margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:16px;justify-content:center">
+        <button type="button" onclick="openLegal('tos')"  style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:11px;font-family:inherit;padding:0">Términos de Uso</button>
+        <button type="button" onclick="openLegal('priv')" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:11px;font-family:inherit;padding:0">Política de Privacidad</button>
+        <span style="color:rgba(255,255,255,0.15);font-size:11px">© 2026 ORBIT</span>
+      </div>
     </div>
 
     <!-- ARTICLE MODAL -->
@@ -418,15 +368,134 @@
 
   </div><!-- end #app -->
 
+  <!-- LEGAL MODAL -->
+  <div id="legal-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.88);backdrop-filter:blur(12px);overflow-y:auto;padding:20px">
+    <div style="max-width:680px;margin:0 auto;background:#0D0D1C;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:36px 32px;position:relative">
+      <button id="legal-close" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);width:32px;height:32px;border-radius:50%;cursor:pointer;color:rgba(255,255,255,0.6);font-size:18px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+      <div style="display:flex;gap:8px;margin-bottom:28px">
+        <button id="legal-tab-tos"  class="legal-tab active" onclick="showLegalTab('tos')"  style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:rgba(0,212,255,0.15);color:#00D4FF">Términos de Uso</button>
+        <button id="legal-tab-priv" class="legal-tab"        onclick="showLegalTab('priv')" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45)">Política de Privacidad</button>
+      </div>
+      <div id="legal-content" style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.75"></div>
+    </div>
+  </div>
+
   <!-- Ambient particle canvas — additive particles, never dims the app -->
   <canvas id="ambient-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none"></canvas>
 
   <script type="module" src="src/js/app.js"></script>
   <script>
-    // Register service worker only on web (not in Capacitor native shell)
     if ('serviceWorker' in navigator && !window.Capacitor) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
+
+    const LEGAL = {
+      tos: `
+        <h2 style="font-size:20px;font-weight:700;margin:0 0 4px;color:#fff">Términos de Uso</h2>
+        <p style="font-size:12px;color:rgba(255,255,255,0.35);margin:0 0 24px">Última actualización: mayo 2026</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">1. Aceptación</h3>
+        <p>Al crear una cuenta o utilizar ORBIT ("el Servicio"), aceptas estos Términos de Uso en su totalidad. Si no estás de acuerdo, no uses el Servicio.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">2. Descripción del Servicio</h3>
+        <p>ORBIT es una plataforma de agregación de noticias internacionales visualizadas sobre un globo terráqueo 3D en tiempo real. El contenido proviene de fuentes de terceros (The Guardian y otras agencias) y se presenta con fines informativos.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">3. Cuenta de Usuario</h3>
+        <p>Para acceder al Servicio debes crear una cuenta con un email válido y una contraseña. Eres responsable de mantener la confidencialidad de tus credenciales. Debes notificarnos inmediatamente cualquier uso no autorizado de tu cuenta.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">4. Uso Permitido</h3>
+        <p>El Servicio es exclusivamente para uso personal, no comercial. Queda prohibido: (a) hacer scraping o extracción masiva de datos; (b) intentar acceder a sistemas o cuentas ajenas; (c) usar el Servicio para actividades ilegales; (d) redistribuir el contenido sin autorización expresa.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">5. Propiedad Intelectual</h3>
+        <p>ORBIT, su código, diseño, nombre comercial, logo y tecnología son propiedad exclusiva del titular del Servicio y están protegidos por la legislación de propiedad intelectual española y europea. El contenido de noticias pertenece a sus respectivos medios de comunicación.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">6. Limitación de Responsabilidad</h3>
+        <p>ORBIT agrega información de terceros y no garantiza su exactitud, completitud o actualidad. El Servicio se proporciona "tal cual" sin garantías de ningún tipo. En ningún caso el titular será responsable por daños derivados del uso o imposibilidad de uso del Servicio.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">7. Modificaciones</h3>
+        <p>Nos reservamos el derecho a modificar estos Términos en cualquier momento. Los cambios sustanciales se notificarán por email. El uso continuado del Servicio tras la notificación implica la aceptación de los nuevos Términos.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">8. Legislación Aplicable</h3>
+        <p>Estos Términos se rigen por la legislación española. Para cualquier controversia, las partes se someten a los juzgados y tribunales de Madrid, con renuncia a cualquier otro fuero.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">9. Contacto</h3>
+        <p>Para cualquier consulta sobre estos Términos: <a href="mailto:nijito2332@gmail.com" style="color:#00D4FF">nijito2332@gmail.com</a></p>
+      `,
+      priv: `
+        <h2 style="font-size:20px;font-weight:700;margin:0 0 4px;color:#fff">Política de Privacidad</h2>
+        <p style="font-size:12px;color:rgba(255,255,255,0.35);margin:0 0 24px">Última actualización: mayo 2026 · Cumplimiento RGPD (UE) 2016/679</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">1. Responsable del Tratamiento</h3>
+        <p>El responsable del tratamiento de tus datos personales es el titular de ORBIT. Contacto: <a href="mailto:nijito2332@gmail.com" style="color:#00D4FF">nijito2332@gmail.com</a></p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">2. Datos que Recopilamos</h3>
+        <p><strong style="color:#fff">Datos de cuenta:</strong> dirección de email, nombre (opcional), contraseña (almacenada en formato hash cifrado, nunca en texto plano).</p>
+        <p style="margin-top:8px"><strong style="color:#fff">Preferencias:</strong> idioma seleccionado, preferencias de categorías, configuración del Daily Brief.</p>
+        <p style="margin-top:8px"><strong style="color:#fff">Datos técnicos:</strong> última conexión (timestamp). No recopilamos IP, cookies de seguimiento, ni datos de localización.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">3. Finalidad y Base Legal</h3>
+        <p><strong style="color:#fff">Prestación del Servicio</strong> (base: ejecución de contrato, art. 6.1.b RGPD): gestión de tu cuenta, autenticación y personalización de la experiencia.</p>
+        <p style="margin-top:8px"><strong style="color:#fff">Daily Brief</strong> (base: consentimiento explícito, art. 6.1.a RGPD): envío del resumen diario de noticias. Puedes revocar este consentimiento en cualquier momento desde tu perfil.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">4. Encargados del Tratamiento</h3>
+        <p>Trabajamos con los siguientes proveedores que tratan datos en tu nombre, todos con garantías adecuadas conforme al RGPD:</p>
+        <ul style="margin:8px 0 0 16px;line-height:2">
+          <li><strong style="color:#fff">Supabase Inc.</strong> — almacenamiento de base de datos (servidores en la UE)</li>
+          <li><strong style="color:#fff">Vercel Inc.</strong> — alojamiento del frontend (Edge Network)</li>
+          <li><strong style="color:#fff">Fly.io Inc.</strong> — servidor de backend (región París, Francia)</li>
+        </ul>
+        <p style="margin-top:8px">El contenido de noticias proviene de <strong style="color:#fff">The Guardian</strong> y otras fuentes públicas mediante sus APIs. No compartimos tus datos con anunciantes ni terceros con fines comerciales.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">5. Conservación de Datos</h3>
+        <p>Conservamos tus datos mientras tu cuenta esté activa. Si solicitas la eliminación de tu cuenta, borraremos todos tus datos personales en un plazo máximo de 30 días.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">6. Tus Derechos (RGPD)</h3>
+        <p>Como usuario en la UE tienes derecho a:</p>
+        <ul style="margin:8px 0 0 16px;line-height:2">
+          <li><strong style="color:#fff">Acceso</strong> — obtener copia de tus datos</li>
+          <li><strong style="color:#fff">Rectificación</strong> — corregir datos inexactos</li>
+          <li><strong style="color:#fff">Supresión</strong> ("derecho al olvido") — eliminar tu cuenta y datos</li>
+          <li><strong style="color:#fff">Portabilidad</strong> — recibir tus datos en formato estructurado</li>
+          <li><strong style="color:#fff">Oposición</strong> — oponerte al tratamiento en determinadas circunstancias</li>
+          <li><strong style="color:#fff">Retirada del consentimiento</strong> — en cualquier momento para el Daily Brief</li>
+        </ul>
+        <p style="margin-top:8px">Para ejercer cualquiera de estos derechos envía un email a <a href="mailto:nijito2332@gmail.com" style="color:#00D4FF">nijito2332@gmail.com</a>. Responderemos en un plazo máximo de 30 días. También puedes presentar una reclamación ante la Agencia Española de Protección de Datos (aepd.es).</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">7. Seguridad</h3>
+        <p>Implementamos medidas técnicas y organizativas adecuadas: contraseñas con hash bcrypt, comunicaciones cifradas mediante HTTPS/TLS, acceso a datos restringido mediante Row Level Security en base de datos.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">8. Menores</h3>
+        <p>ORBIT no está dirigido a menores de 16 años. Si tienes conocimiento de que un menor ha proporcionado datos personales, contáctanos para proceder a su eliminación.</p>
+
+        <h3 style="font-size:13px;font-weight:700;color:#00D4FF;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.08em">9. Cambios en esta Política</h3>
+        <p>Notificaremos cualquier cambio sustancial por email con al menos 30 días de antelación. La versión actualizada estará siempre disponible en la aplicación.</p>
+      `
+    };
+
+    function showLegalTab(tab) {
+      const content = document.getElementById('legal-content');
+      if (content) content.innerHTML = LEGAL[tab] || '';
+      document.querySelectorAll('.legal-tab').forEach(b => {
+        const isActive = b.id === 'legal-tab-' + tab;
+        b.style.background = isActive ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.05)';
+        b.style.color      = isActive ? '#00D4FF'              : 'rgba(255,255,255,0.45)';
+      });
+    }
+
+    function openLegal(tab) {
+      const modal = document.getElementById('legal-modal');
+      if (!modal) return;
+      modal.style.display = 'block';
+      showLegalTab(tab || 'tos');
+    }
+
+    document.getElementById('legal-close')?.addEventListener('click', () => {
+      document.getElementById('legal-modal').style.display = 'none';
+    });
+    document.getElementById('legal-modal')?.addEventListener('click', e => {
+      if (e.target === document.getElementById('legal-modal'))
+        document.getElementById('legal-modal').style.display = 'none';
+    });
   </script>
 </body>
 </html>
