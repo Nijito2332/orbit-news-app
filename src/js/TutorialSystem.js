@@ -1,84 +1,87 @@
 // ────────────────────────────────────────────────────────────────────
 //  ORBIT Tutorial System — cinematic onboarding for first-time users
 // ────────────────────────────────────────────────────────────────────
+import { t } from './i18n.js';
 
 const KEY = 'orbit_tutorial_v2';
 
-// Each step: what to show, where to put the panel, what to spotlight
-const STEPS = [
-  {
-    id:       'welcome',
-    badge:    null,
-    icon:     null,
-    title:    'El futuro de las noticias',
-    desc:     'Bienvenido a ORBIT — un planeta Tierra 3D en tiempo real con miles de historias en vivo.',
-    hint:     null,
-    cta:      'Empezar',
-    pos:      'center',
-    spot:     'dark',
-    final:    false,
-  },
-  {
-    id:       'globe',
-    badge:    '01',
-    icon:     '🌍',
-    title:    'Gira la Tierra',
-    desc:     'Arrastra para rotar el globo. Pellizca para hacer zoom. El planeta entero es tu mapa de noticias.',
-    hint:     'Prueba a girar el globo ahora mismo',
-    cta:      'Siguiente',
-    pos:      'bottom',
-    spot:     'globe',
-    final:    false,
-  },
-  {
-    id:       'hotspot',
-    badge:    '02',
-    icon:     '📍',
-    title:    'Los hotspots son noticias en vivo',
-    desc:     'Cada punto brillante en el globo representa un país con historias activas. Su color indica la categoría dominante.',
-    hint:     'Toca cualquier punto para explorar el país',
-    cta:      'Siguiente',
-    pos:      'bottom',
-    spot:     'globe',
-    final:    false,
-  },
-  {
-    id:       'categories',
-    badge:    '03',
-    icon:     '🎯',
-    title:    'Filtra por categoría',
-    desc:     'Elige Deportes ⚽, Gaming 🎮, Tecnología 💻 o Entretenimiento 🎬. El globo cambia de color al instante.',
-    hint:     null,
-    cta:      'Siguiente',
-    pos:      'sidebar',
-    spot:     'sidebar',
-    final:    false,
-  },
-  {
-    id:       'translate',
-    badge:    '04',
-    icon:     '🌐',
-    title:    'El mundo en tu idioma',
-    desc:     'ORBIT traduce automáticamente noticias de 130+ fuentes globales. Español, English, Français o Deutsch.',
-    hint:     'Cambia el idioma en el menú superior derecho',
-    cta:      'Siguiente',
-    pos:      'bottom',
-    spot:     'lang',
-    final:    false,
-  },
-  {
-    id:       'ready',
-    badge:    null,
-    icon:     null,
-    title:    'El mundo te espera',
-    desc:     'Explora el pulso de la humanidad en tiempo real. Cada historia, cada país, en la palma de tu mano.',
-    hint:     null,
-    cta:      'Explorar ORBIT',
-    pos:      'center',
-    spot:     'dark',
-    final:    true,
-  },
-];
+// Steps use translation keys resolved at render time via t()
+function getSteps() {
+  return [
+    {
+      id:    'welcome',
+      badge: null,
+      icon:  null,
+      title: t('tut_w_title'),
+      desc:  t('tut_w_desc'),
+      hint:  null,
+      cta:   t('tut_w_cta'),
+      pos:   'center',
+      spot:  'dark',
+      final: false,
+    },
+    {
+      id:    'globe',
+      badge: '01',
+      icon:  '🌍',
+      title: t('tut_g_title'),
+      desc:  t('tut_g_desc'),
+      hint:  t('tut_g_hint'),
+      cta:   t('tut_next'),
+      pos:   'bottom',
+      spot:  'globe',
+      final: false,
+    },
+    {
+      id:    'hotspot',
+      badge: '02',
+      icon:  '📍',
+      title: t('tut_h_title'),
+      desc:  t('tut_h_desc'),
+      hint:  t('tut_h_hint'),
+      cta:   t('tut_next'),
+      pos:   'bottom',
+      spot:  'globe',
+      final: false,
+    },
+    {
+      id:    'categories',
+      badge: '03',
+      icon:  '🎯',
+      title: t('tut_c_title'),
+      desc:  t('tut_c_desc'),
+      hint:  null,
+      cta:   t('tut_next'),
+      pos:   'sidebar',
+      spot:  'sidebar',
+      final: false,
+    },
+    {
+      id:    'translate',
+      badge: '04',
+      icon:  '🌐',
+      title: t('tut_t_title'),
+      desc:  t('tut_t_desc'),
+      hint:  t('tut_t_hint'),
+      cta:   t('tut_next'),
+      pos:   'bottom',
+      spot:  'lang',
+      final: false,
+    },
+    {
+      id:    'ready',
+      badge: null,
+      icon:  null,
+      title: t('tut_r_title'),
+      desc:  t('tut_r_desc'),
+      hint:  null,
+      cta:   t('tut_r_cta'),
+      pos:   'center',
+      spot:  'dark',
+      final: true,
+    },
+  ];
+}
 
 // Resting transform for each panel position (used as animation base)
 const REST = {
@@ -149,7 +152,7 @@ export class TutorialSystem {
 
         <div class="obt-footer">
           <div class="obt-dots" id="obt-dots">
-            ${STEPS.map((_, i) => `<span class="obt-dot"></span>`).join('')}
+            ${getSteps().map(() => `<span class="obt-dot"></span>`).join('')}
           </div>
           <button class="obt-cta" id="obt-cta"></button>
         </div>
@@ -165,6 +168,7 @@ export class TutorialSystem {
 
   // ── Step renderer ─────────────────────────────────────────────────────────────
   _go(idx) {
+    const STEPS = getSteps();
     const s = STEPS[idx];
     if (!s) { this._done(true); return; }
 
@@ -268,7 +272,8 @@ export class TutorialSystem {
   _next() {
     const panel = this._el?.querySelector('#obt-panel');
     if (!panel) return;
-    const s    = STEPS[this._step];
+    const steps = getSteps();
+    const s    = steps[this._step];
     const base = REST[s?.pos || 'center'];
     const exit = `${base} ${EXIT_EXTRA[s?.pos || 'center']}`;
 
@@ -277,7 +282,7 @@ export class TutorialSystem {
     panel.style.transform  = exit;
 
     setTimeout(() => {
-      if (this._step + 1 >= STEPS.length) this._done(true);
+      if (this._step + 1 >= steps.length) this._done(true);
       else this._go(this._step + 1);
     }, 220);
   }
