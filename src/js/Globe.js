@@ -249,58 +249,78 @@ const HOTSPOT_VERT = /* glsl */`
   }
 `;
 
-// ── ORBIT Signature Hotspot — clean beacon node ────────────────────────────
+// ── ORBIT Premium Hotspot — targeting reticle beacon ────────────────────────
 const HOTSPOT_FRAG = /* glsl */`
+  precision highp float;
   uniform vec3  uColor;
   uniform float uTime;
   uniform float uOpacity;
   uniform float uIntensity;
-
   varying vec2 vUv;
+
+  #define PI  3.14159265359
+  #define TAU 6.28318530718
 
   void main() {
     vec2  uv  = vUv - 0.5;
     float d   = length(uv);
     float ang = atan(uv.y, uv.x);
-
     if (d > 0.5) discard;
 
-    float breathe = 0.78 + 0.22 * sin(uTime * 1.5 + uIntensity * 3.14);
+    float breathe = 0.75 + 0.25 * sin(uTime * 1.4 + uIntensity * PI);
 
-    // 1. BRIGHT CORE — crisp white-hot center dot
-    float core = exp(-d * 62.0) * 3.0;
+    // 1. WHITE-HOT CORE
+    float core = exp(-d * 68.0) * 3.8;
 
-    // 2. INNER GLOW — soft volumetric halo around core
-    float innerGlow = exp(-d * 18.0) * 0.30 * breathe;
+    // 2. 4-POINT STAR BURST — cross extending from center
+    float star = (exp(-abs(uv.x) * 80.0) + exp(-abs(uv.y) * 80.0))
+                 * exp(-d * 20.0) * 0.50;
 
-    // 3. PRIMARY RING — solid clean ring, subtle breathing shimmer
-    float r1     = 0.25 + uIntensity * 0.04;
-    float ring1  = exp(-pow((d - r1) / 0.038, 2.0) * 9.0);
-    float shimmer = 0.82 + 0.18 * sin(uTime * 1.8 + ang * 2.0 + uIntensity * 6.28);
-    ring1 *= shimmer;
+    // 3. INNER VOLUMETRIC GLOW
+    float innerGlow = exp(-d * 15.0) * 0.32 * breathe;
 
-    // 4. SECONDARY RING — thinner outer orbit, only shows on hot stories
-    float r2   = 0.40 + uIntensity * 0.02;
-    float ring2 = exp(-pow((d - r2) / 0.025, 2.0) * 10.0) * uIntensity * 0.60;
+    // 4. MICRO INNER RING — precision targeting circle
+    float r0   = 0.13;
+    float ring0 = exp(-pow((d - r0) / 0.018, 2.0) * 10.0) * 0.70 * breathe;
 
-    // 5. PULSE WAVES — two clean expanding rings with fade
-    float speed  = 0.38 + uIntensity * 0.24;
-    float t1     = mod(uTime * speed, 1.0);
-    float t2     = mod(uTime * speed + 0.5, 1.0);
-    float pulse1 = exp(-pow((d - t1 * 0.46) * 24.0, 2.0)) * pow(1.0 - t1, 2.5) * 1.10;
-    float pulse2 = exp(-pow((d - t2 * 0.46) * 24.0, 2.0)) * pow(1.0 - t2, 2.5) * 0.55;
+    // 5. PRIMARY RING — main indicator with angular shimmer
+    float r1      = 0.26 + uIntensity * 0.04;
+    float shimmer = 0.78 + 0.22 * sin(uTime * 1.8 + ang * 3.0 + uIntensity * TAU);
+    float ring1   = exp(-pow((d - r1) / 0.030, 2.0) * 10.0) * shimmer;
 
-    // 6. WIDE ATMOSPHERIC HALO — diffuse glow scales with intensity
-    float halo = exp(-d * 4.8) * 0.12 * breathe * (0.5 + 0.5 * uIntensity);
+    // 6. TICK MARKS — 4 cardinal points just outside primary ring
+    float tickR   = r1 * 1.32;
+    float tickD   = exp(-pow((d - tickR) / 0.030, 2.0) * 12.0);
+    float tickA   = mod(ang + PI * 0.25, PI * 0.5) - PI * 0.25;
+    float ticks   = tickD * exp(-pow(tickA / 0.038, 2.0)) * 0.60;
 
-    float total = core + innerGlow + ring1 + ring2 + pulse1 + pulse2 + halo;
+    // 7. DASHED OUTER RING — 6 segments rotating slowly
+    float r2      = 0.42 + uIntensity * 0.025;
+    float ring2B  = exp(-pow((d - r2) / 0.016, 2.0) * 14.0) * uIntensity * 0.72;
+    float dashA   = mod(ang + uTime * 0.32, TAU / 6.0);
+    float dash    = smoothstep(0.0, 0.18, dashA) * (1.0 - smoothstep(0.52, 0.70, dashA));
+    float ring2   = ring2B * dash;
+
+    // 8. PULSE WAVES — two expanding rings
+    float speed  = 0.36 + uIntensity * 0.26;
+    float t1     = mod(uTime * speed,        1.0);
+    float t2     = mod(uTime * speed + 0.5,  1.0);
+    float pulse1 = exp(-pow((d - t1 * 0.46) * 22.0, 2.0)) * pow(1.0 - t1, 2.6) * 1.2;
+    float pulse2 = exp(-pow((d - t2 * 0.46) * 22.0, 2.0)) * pow(1.0 - t2, 2.6) * 0.6;
+
+    // 9. ATMOSPHERIC HALO
+    float halo = exp(-d * 4.5) * 0.11 * breathe * (0.4 + 0.6 * uIntensity);
+
+    float total = core + star + innerGlow + ring0 + ring1 + ticks + ring2 + pulse1 + pulse2 + halo;
     float a = clamp(total * uOpacity, 0.0, 1.0);
 
-    // Color: white-hot core → brand color → dim outer
+    // Color grading: white-hot core → brand cyan → tinted structure
     vec3 col = uColor;
-    col = mix(col, vec3(1.0), core * 0.72);        // white-hot at center
-    col += uColor * (ring1 + ring2) * 0.28;         // tint rings
-    col += vec3(1.0) * pulse1 * 0.15;               // bright pulse flash
+    col = mix(col, vec3(1.0),           core  * 0.82);
+    col = mix(col, vec3(1.0, 1.0, 0.9), star  * 0.42);
+    col += uColor * (ring0 * 0.22 + ring1 * 0.28 + ring2 * 0.22);
+    col  = mix(col, vec3(1.0), ticks * 0.58);
+    col += vec3(1.0) * pulse1 * 0.17;
 
     gl_FragColor = vec4(col, a);
   }
@@ -597,8 +617,8 @@ export class Globe {
     const count      = data._allNews?.length || 1;
     const countScale = Math.min(Math.log(count + 1) / Math.log(60), 1);
     const visSize = isMobile
-      ? 0.068 + countScale * 0.040
-      : 0.052 + countScale * 0.038;
+      ? 0.080 + countScale * 0.044
+      : 0.062 + countScale * 0.042;
 
     const visMesh = new THREE.Mesh(new THREE.PlaneGeometry(visSize, visSize), mat);
     visMesh.position.copy(pos);
@@ -960,13 +980,9 @@ export class Globe {
     const hit = this._hitHotspots();
     if (hit) {
       if (this.callbacks.onHotspotClick) this.callbacks.onHotspotClick(hit.data);
-      // Mobile: gentle pan (close zoom is disorienting on small screens)
-      // Desktop: cinematic close-up 3D tilt
-      if (window.innerWidth < 768) {
-        this.flyTo(hit.data.lat, hit.data.lng, 2.0, 900);
-      } else {
-        this.flyToClose(hit.data.lat, hit.data.lng);
-      }
+      // Same smooth flyTo for all screens — close enough to see detail, far enough to navigate away easily
+      const dist = window.innerWidth < 768 ? 2.0 : 1.85;
+      this.flyTo(hit.data.lat, hit.data.lng, dist, 1000);
       this._highlightHotspot(hit);
     } else {
       this.raycaster.setFromCamera(this.mouse, this.camera);
@@ -1007,7 +1023,7 @@ export class Globe {
     const hit = this._hitHotspots();
     if (hit && this.callbacks.onHotspotClick) {
       this.callbacks.onHotspotClick(hit.data);
-      this.flyTo(hit.data.lat, hit.data.lng, 2.0, 900);
+      this.flyTo(hit.data.lat, hit.data.lng, 1.85, 1000);
       this._highlightHotspot(hit);
     } else if (wasRotating) {
       // Restore rotation only if no hotspot was hit
