@@ -617,8 +617,8 @@ export class Globe {
     const count      = data._allNews?.length || 1;
     const countScale = Math.min(Math.log(count + 1) / Math.log(60), 1);
     const visSize = isMobile
-      ? 0.080 + countScale * 0.044
-      : 0.062 + countScale * 0.042;
+      ? 0.064 + countScale * 0.036
+      : 0.048 + countScale * 0.032;
 
     const visMesh = new THREE.Mesh(new THREE.PlaneGeometry(visSize, visSize), mat);
     visMesh.position.copy(pos);

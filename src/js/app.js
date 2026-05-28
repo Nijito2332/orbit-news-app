@@ -7,7 +7,7 @@ import { Globe }            from './Globe.js';
 import { UIManager }        from './UIManager.js';
 import { CATEGORIES, COUNTRY_FLAGS } from './data.js';
 import { translateNews }    from './TranslationService.js';
-import { applyAll, getLang } from './i18n.js';
+import { applyAll, getLang, t } from './i18n.js';
 import { RealtimeEngine }   from './RealtimeEngine.js';
 import { initAuth, isLoggedIn, getUser, getProfile, register, login } from './AuthManager.js';
 import { openOrbitPlus } from './OrbitPlus.js';
@@ -16,6 +16,9 @@ import { detect as chronosDetect, recordSignal }  from './ChronosEngine.js';
 import { adaptFeedToTime, activityLevel }          from './TimeContextEngine.js';
 import { AmbientCanvas }                           from './AmbientCanvas.js';
 import { TutorialSystem }                          from './TutorialSystem.js';
+
+// Apply i18n immediately so auth wall and static elements show the right language
+applyAll();
 
 // ─── Capacitor ────────────────────────────────────────────────────────────────
 const isCapacitor = typeof window !== 'undefined' && !!window.Capacitor;
@@ -122,13 +125,13 @@ function _initAuthWall() {
       nameIn?.classList.add('hidden');
       briefRow?.classList.add('hidden');
       if (langRow) langRow.style.display = 'none';
-      submitTxt.textContent = 'Entrar';
+      submitTxt.textContent = t('aw_submit_login');
       document.getElementById('aw-pass').setAttribute('autocomplete','current-password');
     } else {
       nameIn?.classList.remove('hidden');
       briefRow?.classList.remove('hidden');
       if (langRow) langRow.style.display = '';
-      submitTxt.textContent = 'Crear cuenta gratis';
+      submitTxt.textContent = t('aw_submit_register');
       document.getElementById('aw-pass').setAttribute('autocomplete','new-password');
     }
     errEl.classList.add('hidden');
@@ -163,7 +166,7 @@ function _initAuthWall() {
       } else {
         const result = await register({ email, password, name, daily_brief: brief, email_language: emailLang });
         if (result.requiresLogin) {
-          succEl.textContent = 'Cuenta creada. Inicia sesión.';
+          succEl.textContent = t('aw_account_created');
           succEl.classList.remove('hidden');
           setMode('login');
           submit.disabled = false;
@@ -177,13 +180,14 @@ function _initAuthWall() {
       _hideAuthWall();
       if (_authResolve) { _authResolve(); _authResolve = null; }
     } catch(err) {
-      let msg = err.message || 'Algo salió mal';
-      if (msg.includes('invalid_credentials') || msg.includes('Invalid login')) msg = 'Email o contraseña incorrectos';
-      if (msg.includes('already') || msg.includes('duplicate')) msg = 'Ya tienes cuenta. Inicia sesión.';
-      if (msg.includes('6 char') || msg.includes('should be')) msg = 'La contraseña debe tener al menos 6 caracteres';
+      let msg = err.message || t('aw_error_default');
+      if (msg.includes('invalid_credentials') || msg.includes('Invalid login') || msg.includes('incorrectos')) msg = t('aw_error_credentials');
+      if (msg.includes('already') || msg.includes('duplicate') || msg.includes('ya tienes')) msg = t('aw_error_exists');
+      if (msg.includes('6 char') || msg.includes('should be') || msg.includes('6 caract')) msg = t('aw_error_password');
+      if (msg.includes('conexión') || msg.includes('conexion') || msg.includes('internet')) msg = t('aw_error_connection');
       errEl.textContent = msg;
       errEl.classList.remove('hidden');
-      submitTxt.textContent = mode === 'login' ? 'Entrar' : 'Crear cuenta gratis';
+      submitTxt.textContent = mode === 'login' ? t('aw_submit_login') : t('aw_submit_register');
       submit.disabled = false;
     }
   });
@@ -194,6 +198,23 @@ let _liveNews    = [];   // After translation (display)
 let _realtime    = null;
 
 function jt(v, r = 0.3) { return v + (Math.random() - 0.5) * r; }
+
+// ─── Story cache (localStorage) — shown when server is unreachable ────────────
+function _cacheStories(stories) {
+  try {
+    localStorage.setItem('orbit_story_cache', JSON.stringify({ ts: Date.now(), stories: stories.slice(0, 200) }));
+  } catch(_) {}
+}
+
+function _loadCachedStories() {
+  try {
+    const raw = localStorage.getItem('orbit_story_cache');
+    if (!raw) return null;
+    const { ts, stories } = JSON.parse(raw);
+    if (Date.now() - ts < 6 * 3_600_000 && Array.isArray(stories) && stories.length > 0) return stories;
+  } catch(_) {}
+  return null;
+}
 
 // ─── Spawn hotspots: ONE per country ─────────────────────────────────────────
 function spawnHotspots(news, animate = false) {
@@ -219,7 +240,12 @@ function spawnHotspots(news, animate = false) {
     );
     const catCounts = {};
     forIntensity.forEach(a => { catCounts[a.category] = (catCounts[a.category] || 0) + 1; });
-    const domCat = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'world';
+    // Prefer a specific category over generic 'world' for richer color variety
+    const domCat = Object.entries(catCounts)
+      .filter(([c]) => c !== 'world' && c !== 'all')
+      .sort((a, b) => b[1] - a[1])[0]?.[0]
+      || Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
+      || 'world';
 
     // Color by dominant category — same color as sidebar and country outline
     const hotColor = (CATEGORIES[domCat] || CATEGORIES.world).color;
@@ -280,6 +306,7 @@ async function displayNews(rawNews) {
   const lang = getLang();
   // Always spawn immediately with original content — never block on translation
   spawnHotspots(adaptFeedToTime(rawNews, _chronosSlot));
+  _cacheStories(rawNews);
   // Translate in background and refresh hotspots when ready
   if (lang !== 'en') {
     applyTranslation(rawNews, lang).then(translated => {
@@ -473,8 +500,15 @@ async function boot() {
     if (_liveNewsRaw.length === 0) {
       console.warn('[App] All sources timeout, using fallback…');
       try {
-        const { ensureDensity } = await import('./ProcessingPipeline.js');
-        _liveNewsRaw = ensureDensity([]);
+        // Prefer stale cached stories (real news) over generated micro-stories
+        const cached = _loadCachedStories();
+        if (cached && cached.length > 0) {
+          console.log(`[App] Serving ${cached.length} cached stories (server unreachable)`);
+          _liveNewsRaw = cached;
+        } else {
+          const { enforceDensity } = await import('./ProcessingPipeline.js');
+          _liveNewsRaw = enforceDensity([]);
+        }
         await displayNews(_liveNewsRaw);
       } finally {
         _revealApp();
