@@ -662,6 +662,36 @@ h1,h2,h3,h4 { font-family: var(--font-display); }
 .sidebar-item:hover::before { opacity: 0.4; }
 .sidebar-item.active { background: color-mix(in srgb, var(--cat-clr) 10%, transparent); color: var(--cat-clr); border: 1px solid color-mix(in srgb, var(--cat-clr) 22%, transparent); }
 .sidebar-item.active::before { opacity: 1; box-shadow: 0 0 6px var(--cat-clr); }
+/* Category hotspot dot — mirrors globe hotspot color */
+.scat-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: var(--cat-clr, #00D4FF);
+  box-shadow: 0 0 5px var(--cat-clr, #00D4FF);
+  opacity: 0.55;
+  animation: scat-breathe 3s ease-in-out infinite;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.sidebar-item.active .scat-dot {
+  opacity: 1;
+  box-shadow: 0 0 9px var(--cat-clr, #00D4FF), 0 0 18px color-mix(in srgb, var(--cat-clr) 40%, transparent);
+  animation: scat-breathe-active 2s ease-in-out infinite;
+}
+@keyframes scat-breathe {
+  0%,100% { transform: scale(1);   opacity: 0.50; }
+  50%      { transform: scale(1.3); opacity: 0.75; }
+}
+@keyframes scat-breathe-active {
+  0%,100% { transform: scale(1);   }
+  50%      { transform: scale(1.45); }
+}
+/* Stagger animation per row so they don't all pulse together */
+.sidebar-item:nth-child(1) .scat-dot { animation-delay: 0s; }
+.sidebar-item:nth-child(2) .scat-dot { animation-delay: 0.43s; }
+.sidebar-item:nth-child(3) .scat-dot { animation-delay: 0.86s; }
+.sidebar-item:nth-child(4) .scat-dot { animation-delay: 1.29s; }
+.sidebar-item:nth-child(5) .scat-dot { animation-delay: 1.72s; }
+.sidebar-item:nth-child(6) .scat-dot { animation-delay: 2.15s; }
+.sidebar-item:nth-child(7) .scat-dot { animation-delay: 2.58s; }
 .sidebar-item-icon { font-size: 16px; flex-shrink: 0; line-height: 1; }
 .sidebar-item-label { flex: 1; }
 .sidebar-item-count { font-size: 11px; color: var(--text-30); background: rgba(255,255,255,.06); padding: 2px 6px; border-radius: 99px; transition: all var(--t-fast); }
@@ -1735,8 +1765,11 @@ body::before {
   .country-tooltip { display: none !important; }
 }
 
-/* ── Hotspot legend — premium glassmorphism ── */
+/* ── Hotspot legend — hidden (dots now live in sidebar) ── */
 #hotspot-legend {
+  display: none !important;
+}
+#hotspot-legend-DISABLED {
   position: absolute;
   bottom: calc(var(--trend-h) + 14px);
   left: calc(var(--sidebar-w) + 14px);
