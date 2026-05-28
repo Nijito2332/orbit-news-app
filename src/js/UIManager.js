@@ -1501,6 +1501,23 @@ export class UIManager {
           this._filterAndRenderHub();
         });
       });
+
+      // ── Scroll arrows for category strip ──────────────────────
+      const leftArrow  = document.getElementById('hub-cats-left');
+      const rightArrow = document.getElementById('hub-cats-right');
+      const syncArrows = () => {
+        if (!hubCatsEl || !leftArrow || !rightArrow) return;
+        const maxScroll = hubCatsEl.scrollWidth - hubCatsEl.clientWidth;
+        leftArrow.classList.toggle('show',  hubCatsEl.scrollLeft > 8);
+        rightArrow.classList.toggle('show', maxScroll > 8 && hubCatsEl.scrollLeft < maxScroll - 8);
+      };
+      if (leftArrow && rightArrow) {
+        leftArrow.onclick  = () => hubCatsEl.scrollBy({ left: -130, behavior: 'smooth' });
+        rightArrow.onclick = () => hubCatsEl.scrollBy({ left:  130, behavior: 'smooth' });
+        hubCatsEl.addEventListener('scroll', syncArrows, { passive: true });
+        // Delay to allow layout to settle before measuring
+        setTimeout(syncArrows, 80);
+      }
     }
 
     // ── Sort tabs ──
