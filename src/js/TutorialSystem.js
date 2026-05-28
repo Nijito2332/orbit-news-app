@@ -69,6 +69,18 @@ function getSteps() {
       final: false,
     },
     {
+      id:    'install',
+      badge: '05',
+      icon:  '📲',
+      title: t('tut_i_title'),
+      desc:  t('tut_i_desc'),
+      hint:  t('tut_i_hint'),
+      cta:   t('tut_next'),
+      pos:   'center',
+      spot:  'dark',
+      final: false,
+    },
+    {
       id:    'ready',
       badge: null,
       icon:  null,
