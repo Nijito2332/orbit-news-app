@@ -1042,21 +1042,28 @@ export class UIManager {
     const el = document.getElementById('hotspot-legend');
     if (!el) return;
     const entries = [
-      { cat: 'sports',        color: '#4ADE80' },
-      { cat: 'technology',    color: '#818CF8' },
-      { cat: 'entertainment', color: '#FB923C' },
-      { cat: 'gaming',        color: '#C084FC' },
-      { cat: 'trending',      color: '#F59E0B' },
-      { cat: 'world',         color: '#00D4FF' },
+      { cat: 'world',         color: '#00D4FF', icon: '🌍' },
+      { cat: 'trending',      color: '#F59E0B', icon: '🔥' },
+      { cat: 'sports',        color: '#4ADE80', icon: '⚽' },
+      { cat: 'technology',    color: '#818CF8', icon: '💻' },
+      { cat: 'entertainment', color: '#FB923C', icon: '🎬' },
+      { cat: 'gaming',        color: '#C084FC', icon: '🎮' },
     ];
-    el.innerHTML = entries.map(({ cat, color }) => {
-      const label = t('cat_' + cat) || CATEGORIES[cat]?.label || cat;
-      return `<div class="hl-row">
-        <span class="hl-dot" style="background:${color};box-shadow:0 0 6px ${color}88"></span>
-        <span class="hl-label">${label}</span>
-      </div>`;
-    }).join('');
-    // Re-render on language change so labels update
+    el.innerHTML = `
+      <div class="hl-header">
+        <span class="hl-live-dot"></span>
+        <span class="hl-title">LIVE</span>
+      </div>
+      <div class="hl-divider"></div>
+      ${entries.map(({ cat, color, icon }) => {
+        const label = t('cat_' + cat) || CATEGORIES[cat]?.label || cat;
+        return `<div class="hl-row">
+          <span class="hl-dot" style="--hl-color:${color}"></span>
+          <span class="hl-icon">${icon}</span>
+          <span class="hl-label">${label}</span>
+        </div>`;
+      }).join('')}
+    `;
     window.addEventListener('orbit:lang', () => this._buildHotspotLegend());
   }
 

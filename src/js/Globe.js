@@ -249,13 +249,14 @@ const HOTSPOT_VERT = /* glsl */`
   }
 `;
 
-// ── ORBIT Premium Hotspot — targeting reticle beacon ────────────────────────
+// ── ORBIT Premium Hotspot v2 — volumetric energy beacon ─────────────────────
 const HOTSPOT_FRAG = /* glsl */`
   precision highp float;
   uniform vec3  uColor;
   uniform float uTime;
   uniform float uOpacity;
   uniform float uIntensity;
+  uniform float uHover;
   varying vec2 vUv;
 
   #define PI  3.14159265359
@@ -267,60 +268,70 @@ const HOTSPOT_FRAG = /* glsl */`
     float ang = atan(uv.y, uv.x);
     if (d > 0.5) discard;
 
-    float breathe = 0.75 + 0.25 * sin(uTime * 1.4 + uIntensity * PI);
+    float breathe = 0.72 + 0.28 * sin(uTime * 1.3 + uIntensity * PI);
+    float h = uHover;
 
-    // 1. WHITE-HOT CORE
-    float core = exp(-d * 68.0) * 3.8;
+    // 1. VOLUMETRIC SPHERE — 3D illusion with off-center highlight + Fresnel edge
+    vec2  hlOff  = vec2(-0.05, 0.07);
+    float hlDist = length(uv - hlOff * (1.0 - d * 1.6));
+    float sphere = exp(-hlDist * 52.0) * (2.6 + h * 1.8);
+    float fresnelEdge = 1.0 - exp(-d * 28.0); // darkens edge → 3D sphere feel
+    sphere *= (0.55 + 0.45 * fresnelEdge);
+    float coreGlow = exp(-d * 17.0) * (0.60 + h * 0.50) * breathe;
 
-    // 2. 4-POINT STAR BURST — cross extending from center
-    float star = (exp(-abs(uv.x) * 80.0) + exp(-abs(uv.y) * 80.0))
-                 * exp(-d * 20.0) * 0.50;
+    // 2. INNER PRECISION RING
+    float r0    = 0.15 + h * 0.015;
+    float ring0 = exp(-pow((d - r0) / 0.022, 2.0) * 8.0) * (0.80 + h * 0.45) * breathe;
 
-    // 3. INNER VOLUMETRIC GLOW
-    float innerGlow = exp(-d * 15.0) * 0.32 * breathe;
+    // 3. PRIMARY ORBITAL RING — rotating shimmer
+    float r1      = 0.265 + uIntensity * 0.022 + h * 0.028;
+    float shimmer = 0.62 + 0.38 * sin(uTime * 2.1 + ang * 4.0 + uIntensity * TAU);
+    float ring1   = exp(-pow((d - r1) / 0.020, 2.0) * 8.0) * shimmer * (0.72 + h * 0.55);
 
-    // 4. MICRO INNER RING — precision targeting circle
-    float r0   = 0.13;
-    float ring0 = exp(-pow((d - r0) / 0.018, 2.0) * 10.0) * 0.70 * breathe;
+    // 4. DASHED OUTER RING — visible on hover and high intensity
+    float r2      = 0.375 + h * 0.022;
+    float dashAng = mod(ang + uTime * 0.65, TAU / 8.0);
+    float dash2   = smoothstep(0.0, 0.16, dashAng) * (1.0 - smoothstep(0.46, 0.62, dashAng));
+    float ring2   = exp(-pow((d - r2) / 0.017, 2.0) * 9.0) * dash2 * (h * 0.90 + uIntensity * 0.28);
 
-    // 5. PRIMARY RING — main indicator with angular shimmer
-    float r1      = 0.26 + uIntensity * 0.04;
-    float shimmer = 0.78 + 0.22 * sin(uTime * 1.8 + ang * 3.0 + uIntensity * TAU);
-    float ring1   = exp(-pow((d - r1) / 0.030, 2.0) * 10.0) * shimmer;
+    // 5. ENERGY PARTICLES — 6 orbiting dots
+    float particles = 0.0;
+    float pR = 0.205 + uIntensity * 0.035 + h * 0.025;
+    for (int i = 0; i < 6; i++) {
+      float pAng = TAU * float(i) / 6.0 + uTime * (0.52 + uIntensity * 0.32);
+      vec2  pPos = vec2(cos(pAng), sin(pAng)) * pR;
+      float pd   = length(uv - pPos);
+      particles += exp(-pd * 135.0) * (0.50 + h * 0.60);
+    }
 
-    // 6. TICK MARKS — 4 cardinal points just outside primary ring
-    float tickR   = r1 * 1.32;
-    float tickD   = exp(-pow((d - tickR) / 0.030, 2.0) * 12.0);
-    float tickA   = mod(ang + PI * 0.25, PI * 0.5) - PI * 0.25;
-    float ticks   = tickD * exp(-pow(tickA / 0.038, 2.0)) * 0.60;
+    // 6. TICK MARKS — 4 cardinal points
+    float tickR = r1 * 1.26;
+    float tickD = exp(-pow((d - tickR) / 0.022, 2.0) * 10.0);
+    float tickA = mod(ang + PI * 0.25, PI * 0.5) - PI * 0.25;
+    float ticks = tickD * exp(-pow(tickA / 0.030, 2.0)) * 0.48 * breathe;
 
-    // 7. DASHED OUTER RING — 6 segments rotating slowly
-    float r2      = 0.42 + uIntensity * 0.025;
-    float ring2B  = exp(-pow((d - r2) / 0.016, 2.0) * 14.0) * uIntensity * 0.72;
-    float dashA   = mod(ang + uTime * 0.32, TAU / 6.0);
-    float dash    = smoothstep(0.0, 0.18, dashA) * (1.0 - smoothstep(0.52, 0.70, dashA));
-    float ring2   = ring2B * dash;
+    // 7. PULSE WAVES — two staggered expanding rings
+    float speed  = 0.30 + uIntensity * 0.24 + h * 0.14;
+    float t1     = mod(uTime * speed,       1.0);
+    float t2     = mod(uTime * speed + 0.5, 1.0);
+    float pulse1 = exp(-pow((d - t1 * 0.46) * 21.0, 2.0)) * pow(1.0 - t1, 2.8) * (0.90 + h * 0.40);
+    float pulse2 = exp(-pow((d - t2 * 0.46) * 21.0, 2.0)) * pow(1.0 - t2, 2.8) * 0.45;
 
-    // 8. PULSE WAVES — two expanding rings
-    float speed  = 0.36 + uIntensity * 0.26;
-    float t1     = mod(uTime * speed,        1.0);
-    float t2     = mod(uTime * speed + 0.5,  1.0);
-    float pulse1 = exp(-pow((d - t1 * 0.46) * 22.0, 2.0)) * pow(1.0 - t1, 2.6) * 1.2;
-    float pulse2 = exp(-pow((d - t2 * 0.46) * 22.0, 2.0)) * pow(1.0 - t2, 2.6) * 0.6;
+    // 8. ATMOSPHERIC HALO
+    float halo = exp(-d * (4.8 - h * 1.4)) * 0.09 * breathe * (0.45 + 0.55 * uIntensity + h * 0.32);
 
-    // 9. ATMOSPHERIC HALO
-    float halo = exp(-d * 4.5) * 0.11 * breathe * (0.4 + 0.6 * uIntensity);
-
-    float total = core + star + innerGlow + ring0 + ring1 + ticks + ring2 + pulse1 + pulse2 + halo;
+    float total = sphere + coreGlow + ring0 + ring1 + ring2 + particles + ticks + pulse1 + pulse2 + halo;
     float a = clamp(total * uOpacity, 0.0, 1.0);
 
-    // Color grading: white-hot core → brand cyan → tinted structure
+    // COLOR GRADING
     vec3 col = uColor;
-    col = mix(col, vec3(1.0),           core  * 0.82);
-    col = mix(col, vec3(1.0, 1.0, 0.9), star  * 0.42);
-    col += uColor * (ring0 * 0.22 + ring1 * 0.28 + ring2 * 0.22);
-    col  = mix(col, vec3(1.0), ticks * 0.58);
-    col += vec3(1.0) * pulse1 * 0.17;
+    col = mix(col, vec3(1.0, 0.98, 0.95), min(sphere * 0.86, 1.0));
+    col += uColor * coreGlow * 0.42;
+    col += uColor * (ring0 * 0.28 + ring1 * 0.34 + ring2 * 0.26);
+    col += uColor * particles * 0.88;
+    col  = mix(col, vec3(1.0), ticks * 0.50);
+    col += vec3(1.0, 0.96, 0.90) * pulse1 * 0.16;
+    col  = mix(col, col * 1.10 + vec3(0.05, 0.02, 0.0), h * 0.32);
 
     gl_FragColor = vec4(col, a);
   }
@@ -604,6 +615,7 @@ export class Globe {
         uTime:      { value: 0 },
         uOpacity:   { value: 0.70 },
         uIntensity: { value: intensity },
+        uHover:     { value: 0 },
       },
       vertexShader:   HOTSPOT_VERT,
       fragmentShader: HOTSPOT_FRAG,
@@ -617,17 +629,16 @@ export class Globe {
     const count      = data._allNews?.length || 1;
     const countScale = Math.min(Math.log(count + 1) / Math.log(60), 1);
     const visSize = isMobile
-      ? 0.064 + countScale * 0.036
-      : 0.048 + countScale * 0.032;
+      ? 0.050 + countScale * 0.026   // 0.050–0.076 (was 0.064–0.100)
+      : 0.038 + countScale * 0.022;  // 0.038–0.060 (was 0.048–0.080)
 
     const visMesh = new THREE.Mesh(new THREE.PlaneGeometry(visSize, visSize), mat);
     visMesh.position.copy(pos);
     visMesh.lookAt(pos.clone().normalize().multiplyScalar(2));
     this.scene.add(visMesh);
 
-    // Hitbox: 1.8x on mobile (not 3.5x — prevents adjacent countries triggering wrong one)
-    // Countries like Spain/France are only ~8° apart; 3.5x caused cross-country selection
-    const hitSize = isMobile ? visSize * 1.8 : visSize * 2.2;
+    // Hitbox: slightly larger than visual for easy tapping
+    const hitSize = isMobile ? visSize * 1.7 : visSize * 2.0;
     const hitMat  = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide });
     const hitMesh = new THREE.Mesh(new THREE.PlaneGeometry(hitSize, hitSize), hitMat);
     hitMesh.position.copy(pos);
@@ -1048,18 +1059,23 @@ export class Globe {
       const uni = h.material.uniforms;
       if (!uni.uIntensity) return;
 
-      const base = h.data._baseIntensity ?? (h.data.intensity || 0.5);
+      const base      = h.data._baseIntensity ?? (h.data.intensity || 0.5);
+      const isHovered = h === this._hovered;
 
-      if (h === this._hovered) {
-        // Ramp up: intensity → 1.0, opacity → 1.0
+      // Drive uHover smoothly (0→1 on hover, 1→0 on leave)
+      if (uni.uHover) {
+        uni.uHover.value = isHovered
+          ? Math.min(uni.uHover.value + 0.07, 1.0)
+          : Math.max(uni.uHover.value - 0.05, 0.0);
+      }
+
+      if (isHovered) {
         uni.uIntensity.value = Math.min(uni.uIntensity.value + 0.05, 1.0);
         uni.uOpacity.value   = Math.min(uni.uOpacity.value   + 0.04, 1.0);
       } else if (this._hovered !== null) {
-        // Dim non-hovered hotspots
         uni.uIntensity.value = Math.max(uni.uIntensity.value - 0.03, base * 0.4);
         uni.uOpacity.value   = Math.max(uni.uOpacity.value   - 0.03, 0.28);
       } else {
-        // No hover — return to base
         uni.uIntensity.value = base + (uni.uIntensity.value - base) * 0.92;
         uni.uOpacity.value   = 0.70 + (uni.uOpacity.value - 0.70) * 0.92;
       }
