@@ -783,23 +783,28 @@ h1,h2,h3,h4 { font-family: var(--font-display); }
 
 /* Category chips (the heart of the country-first UX) */
 .hub-cats {
-  display: flex; gap: 6px;
-  padding: 10px 16px 10px;
-  overflow-x: auto; overflow-y: hidden;
-  scrollbar-width: none; flex-shrink: 0;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 10px 14px 8px;
+  flex-shrink: 0;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-.hub-cats::-webkit-scrollbar { display: none; }
 .hub-cat {
-  padding: 5px 13px; border-radius: 99px; font-size: 12px; font-weight: 600;
+  padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 600;
   color: var(--text-50); cursor: pointer; white-space: nowrap;
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
-  transition: all var(--t-fast); flex-shrink: 0;
+  transition: all var(--t-fast);
 }
 .hub-cat:active { opacity: 0.7; }
-.hub-cat.active {
-  background: rgba(0,212,255,0.12); border-color: var(--blue); color: var(--blue);
-}
+
+/* Active state — category-specific accent colors */
+.hub-cat.active,
+.hub-cat[data-cat="all"].active    { background: rgba(0,212,255,0.13); border-color: #00D4FF; color: #00D4FF; }
+.hub-cat[data-cat="sports"].active { background: rgba(74,222,128,0.13); border-color: #4ADE80; color: #4ADE80; }
+.hub-cat[data-cat="technology"].active { background: rgba(129,140,248,0.13); border-color: #818CF8; color: #818CF8; }
+.hub-cat[data-cat="entertainment"].active { background: rgba(251,146,60,0.13); border-color: #FB923C; color: #FB923C; }
+.hub-cat[data-cat="gaming"].active { background: rgba(192,132,252,0.13); border-color: #C084FC; color: #C084FC; }
+.hub-cat[data-cat="trending"].active { background: rgba(245,158,11,0.13); border-color: #F59E0B; color: #F59E0B; }
+.hub-cat[data-cat="world"].active  { background: rgba(0,212,255,0.13); border-color: #00D4FF; color: #00D4FF; }
 
 /* Sort tabs (Top / Latest / For You) */
 .hub-sort-tabs {
@@ -1890,10 +1895,17 @@ body::before {
   transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1) !important;
 }
 @media (hover: hover) {
-  .hub-cat:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  .hub-cat:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.45); filter: brightness(1.1); }
 }
-.hub-cat.active { box-shadow: 0 0 14px rgba(0,212,255,0.18); }
-.hub-cat:active { transform: scale(0.92) !important; }
+/* Category-specific active glow */
+.hub-cat[data-cat="all"].active,
+.hub-cat[data-cat="world"].active { box-shadow: 0 0 16px rgba(0,212,255,0.25); }
+.hub-cat[data-cat="sports"].active { box-shadow: 0 0 16px rgba(74,222,128,0.25); }
+.hub-cat[data-cat="technology"].active { box-shadow: 0 0 16px rgba(129,140,248,0.25); }
+.hub-cat[data-cat="entertainment"].active { box-shadow: 0 0 16px rgba(251,146,60,0.25); }
+.hub-cat[data-cat="gaming"].active { box-shadow: 0 0 16px rgba(192,132,252,0.25); }
+.hub-cat[data-cat="trending"].active { box-shadow: 0 0 16px rgba(245,158,11,0.25); }
+.hub-cat:active { transform: scale(0.91) !important; }
 
 /* ── Profile panel save button ── */
 #prof-save { transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease !important; }
