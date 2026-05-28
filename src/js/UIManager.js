@@ -130,6 +130,7 @@ export class UIManager {
     this._initMobileLang();
     this._startWorldClock();
     this._startHeartbeat();
+    this._buildHotspotLegend();
 
     applyAll();
   }
@@ -1058,6 +1059,28 @@ export class UIManager {
       const panel = document.getElementById('profile-panel');
       if (panel&&!panel.classList.contains('hidden')) this._renderProfilePanel();
     });
+  }
+
+  _buildHotspotLegend() {
+    const el = document.getElementById('hotspot-legend');
+    if (!el) return;
+    const entries = [
+      { cat: 'sports',        color: '#4ADE80' },
+      { cat: 'technology',    color: '#818CF8' },
+      { cat: 'entertainment', color: '#FB923C' },
+      { cat: 'gaming',        color: '#C084FC' },
+      { cat: 'trending',      color: '#F59E0B' },
+      { cat: 'world',         color: '#00D4FF' },
+    ];
+    el.innerHTML = entries.map(({ cat, color }) => {
+      const label = t('cat_' + cat) || CATEGORIES[cat]?.label || cat;
+      return `<div class="hl-row">
+        <span class="hl-dot" style="background:${color};box-shadow:0 0 6px ${color}88"></span>
+        <span class="hl-label">${label}</span>
+      </div>`;
+    }).join('');
+    // Re-render on language change so labels update
+    window.addEventListener('orbit:lang', () => this._buildHotspotLegend());
   }
 
   _renderProfilePanel() {
