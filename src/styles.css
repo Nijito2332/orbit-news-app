@@ -648,13 +648,13 @@ h1,h2,h3,h4 { font-family: var(--font-display); }
 .sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 8px; margin-bottom: 8px; }
 
 /* ── Category color tokens — same palette used on globe hotspots ── */
-.sidebar-item[data-category="all"]           { --cat-clr: #00D4FF; }
-.sidebar-item[data-category="world"]         { --cat-clr: #00D4FF; }
-.sidebar-item[data-category="sports"]        { --cat-clr: #4ADE80; }
-.sidebar-item[data-category="entertainment"] { --cat-clr: #FB923C; }
-.sidebar-item[data-category="gaming"]        { --cat-clr: #C084FC; }
-.sidebar-item[data-category="technology"]    { --cat-clr: #818CF8; }
-.sidebar-item[data-category="trending"]      { --cat-clr: #F59E0B; }
+.sidebar-item[data-category="all"],    .mobile-cat[data-category="all"]           { --cat-clr: #00D4FF; }
+.sidebar-item[data-category="world"],  .mobile-cat[data-category="world"]         { --cat-clr: #00D4FF; }
+.sidebar-item[data-category="sports"], .mobile-cat[data-category="sports"]        { --cat-clr: #4ADE80; }
+.sidebar-item[data-category="entertainment"], .mobile-cat[data-category="entertainment"] { --cat-clr: #FB923C; }
+.sidebar-item[data-category="gaming"], .mobile-cat[data-category="gaming"]        { --cat-clr: #C084FC; }
+.sidebar-item[data-category="technology"], .mobile-cat[data-category="technology"] { --cat-clr: #818CF8; }
+.sidebar-item[data-category="trending"], .mobile-cat[data-category="trending"]    { --cat-clr: #F59E0B; }
 
 .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-sm); font-size: 13px; color: var(--text-50); transition: all var(--t-fast); position: relative; overflow: hidden; }
 .sidebar-item::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 0 3px 3px 0; background: var(--cat-clr, #00D4FF); opacity: 0; transition: opacity var(--t-fast); }
@@ -1184,7 +1184,8 @@ h1,h2,h3,h4 { font-family: var(--font-display); }
 .mobile-cats { display: none; position: absolute; bottom: var(--trend-h); left: 0; right: 0; z-index: 85; padding: 6px 12px; gap: 8px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; background: rgba(7,7,16,.95); border-top: 1px solid var(--border); }
 .mobile-cats::-webkit-scrollbar { display: none; }
 .mobile-cat { white-space: nowrap; flex-shrink: 0; padding: 7px 14px; border-radius: 99px; background: rgba(255,255,255,.06); border: 1px solid var(--border); font-size: 13px; color: var(--text-50); cursor: pointer; transition: all var(--t-fast); min-height: 36px; }
-.mobile-cat.active { background: rgba(0,212,255,.12); border-color: var(--blue); color: var(--blue); }
+.mobile-cat.active { background: color-mix(in srgb, var(--cat-clr, #00D4FF) 12%, transparent); border-color: color-mix(in srgb, var(--cat-clr, #00D4FF) 40%, transparent); color: var(--cat-clr, #00D4FF); }
+.mobile-cat.active .scat-dot { opacity: 1; box-shadow: 0 0 9px var(--cat-clr, #00D4FF), 0 0 18px color-mix(in srgb, var(--cat-clr) 40%, transparent); animation: scat-breathe-active 2s ease-in-out infinite; }
 
 /* ════════════════════════════════════════════════════════
    MOBILE BOTTOM NAVIGATION

@@ -479,7 +479,7 @@ export class Globe {
     this.controls.enableDamping   = true;
     this.controls.dampingFactor   = 0.028;   // lower = silkier inertia
     this.controls.enablePan       = false;
-    this.controls.minDistance     = 1.3;
+    this.controls.minDistance     = window.innerWidth < 768 ? 1.8 : 1.3;
     this.controls.maxDistance     = 8.2;
     this.controls.rotateSpeed     = 0.30;    // gentler rotation
     this.controls.zoomSpeed       = 0.35;    // much less aggressive zoom
@@ -991,8 +991,8 @@ export class Globe {
     const hit = this._hitHotspots();
     if (hit) {
       if (this.callbacks.onHotspotClick) this.callbacks.onHotspotClick(hit.data);
-      // Same smooth flyTo for all screens — close enough to see detail, far enough to navigate away easily
-      const dist = window.innerWidth < 768 ? 2.0 : 1.85;
+      // Mobile: stay further out so nearby countries remain reachable without re-zooming
+      const dist = window.innerWidth < 768 ? 2.8 : 1.85;
       this.flyTo(hit.data.lat, hit.data.lng, dist, 1000);
       this._highlightHotspot(hit);
     } else {
@@ -1034,7 +1034,7 @@ export class Globe {
     const hit = this._hitHotspots();
     if (hit && this.callbacks.onHotspotClick) {
       this.callbacks.onHotspotClick(hit.data);
-      this.flyTo(hit.data.lat, hit.data.lng, 1.85, 1000);
+      this.flyTo(hit.data.lat, hit.data.lng, 2.8, 1000);
       this._highlightHotspot(hit);
     } else if (wasRotating) {
       // Restore rotation only if no hotspot was hit
