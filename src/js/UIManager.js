@@ -1140,13 +1140,13 @@ export class UIManager {
             <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,0.3);margin-bottom:8px">${t('prof_email_lang')||'IDIOMA DEL EMAIL'}</div>
             <div id="prof-email-lang" style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
               ${[
-                { code:'es', flag:'🇪🇸', label:'Español' },
-                { code:'en', flag:'🇬🇧', label:'English' },
-                { code:'fr', flag:'🇫🇷', label:'Français' },
-                { code:'de', flag:'🇩🇪', label:'Deutsch' },
+                { code:'es', label:'Español' },
+                { code:'en', label:'English' },
+                { code:'fr', label:'Français' },
+                { code:'de', label:'Deutsch' },
               ].map(l => {
                 const sel = emailLangCurrent === l.code;
-                return `<button type="button" class="email-lang-btn" data-lang="${l.code}" ${sel ? 'data-selected="true"' : ''} style="padding:7px 5px;background:${sel ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)'};border:1px solid ${sel ? 'rgba(0,212,255,0.4)' : 'rgba(255,255,255,0.08)'};border-radius:8px;font-size:11.5px;font-weight:600;color:${sel ? '#00D4FF' : 'rgba(255,255,255,0.4)'};cursor:pointer;transition:all .15s">${l.flag} ${l.label}</button>`;
+                return `<button type="button" class="email-lang-btn" data-lang="${l.code}" ${sel ? 'data-selected="true"' : ''} style="padding:7px 5px;background:${sel ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)'};border:1px solid ${sel ? 'rgba(0,212,255,0.4)' : 'rgba(255,255,255,0.08)'};border-radius:8px;font-size:11.5px;font-weight:600;color:${sel ? '#00D4FF' : 'rgba(255,255,255,0.4)'};cursor:pointer;transition:all .15s">${l.label}</button>`;
               }).join('')}
             </div>
           </div>
