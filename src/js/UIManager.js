@@ -1171,23 +1171,6 @@ export class UIManager {
           </div>
         </div>
 
-        <!-- Countries -->
-        <div>
-          <div style="font-size:9px;font-weight:800;letter-spacing:.15em;color:rgba(255,255,255,0.35);margin-bottom:9px">${t('prof_countries')||'PAÍSES SEGUIDOS'}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px" id="prof-countries">
-            ${countries.map(code => {
-              const active = p.followedCountries.includes(code);
-              return `<button class="prof-country-btn ${active?'pca':''}" data-country="${code}"
-                style="padding:5px 11px;border-radius:99px;font-size:11.5px;cursor:pointer;font-weight:700;letter-spacing:.06em;
-                       background:${active?'rgba(0,212,255,0.12)':'rgba(255,255,255,0.04)'};
-                       color:${active?'#00D4FF':'rgba(255,255,255,0.35)'};
-                       border:1px solid ${active?'rgba(0,212,255,0.3)':'rgba(255,255,255,0.08)'}">
-                ${COUNTRY_FLAGS[code]||''} ${code}
-              </button>`;
-            }).join('')}
-          </div>
-        </div>
-
         <!-- Actions -->
         <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px">
           <button id="prof-save" style="width:100%;padding:13px;background:linear-gradient(135deg,#00D4FF,#7B2FBE);border-radius:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;border:none;letter-spacing:.02em;font-family:'Space Grotesk',sans-serif;box-shadow:0 4px 20px rgba(0,212,255,0.25)">${t('prof_save')||'Guardar cambios'}</button>
