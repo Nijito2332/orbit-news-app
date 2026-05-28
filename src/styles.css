@@ -1736,3 +1736,158 @@ body::before {
 @media (hover: none) {
   .country-tooltip { display: none !important; }
 }
+
+/* ════════════════════════════════════════════════════════
+   PREMIUM LAYER — Emil Kowalski
+   Spring physics · Micro-interactions · Noise depth
+   ════════════════════════════════════════════════════════ */
+
+/* ── Noise texture overlay ── */
+.app::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9998;
+  opacity: 0.032; mix-blend-mode: overlay;
+}
+
+/* ── Ambient gradient orbs (depth layer) ── */
+.app::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 40% 30% at 8% 20%,  rgba(0,212,255,0.045) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 40% at 92% 78%,  rgba(123,47,190,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 25% 20% at 50% 100%, rgba(0,212,255,0.025) 0%, transparent 60%);
+}
+
+/* ── Panel drop — blur + scale spring ── */
+@keyframes panel-drop {
+  from { opacity: 0; transform: translateY(-10px) scale(0.97); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0);   }
+}
+
+/* ── Card entrance — fade + rise ── */
+@keyframes card-show {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ── Global button spring press ── */
+button:active:not(:disabled):not(.orbit-card):not(.sidebar-item):not(.topbar-icon-btn) {
+  transform: scale(0.96) !important;
+  transition: transform 0.08s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+
+/* ── News cards ── */
+.orbit-card {
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+  will-change: transform;
+}
+@media (hover: hover) {
+  .orbit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.07);
+  }
+  .orbit-card:hover .orbit-card-headline { color: rgba(255,255,255,0.98); }
+}
+.orbit-card:active { transform: scale(0.985) translateY(0) !important; opacity: 1; }
+
+/* ── Sidebar items — spring slide ── */
+.sidebar-item {
+  transition: background 0.16s ease, color 0.16s ease,
+              transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
+              border 0.16s ease !important;
+}
+@media (hover: hover) {
+  .sidebar-item:hover { transform: translateX(3px); }
+}
+.sidebar-item.active { transform: translateX(4px); }
+.sidebar-item:active { transform: scale(0.97) translateX(2px) !important; }
+
+/* ── Sidebar active indicator — stronger glow ── */
+.sidebar-item.active::before {
+  box-shadow: 0 0 8px var(--cat-clr), 0 0 16px rgba(0,212,255,0.2);
+}
+
+/* ── Topbar buttons — glow lift ── */
+@media (hover: hover) {
+  .topbar-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(0,212,255,0.1);
+  }
+  .topbar-icon-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 10px rgba(0,212,255,0.08);
+  }
+}
+.topbar-btn { transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1) !important; }
+.topbar-icon-btn { transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1) !important; }
+
+/* ── Topbar — gradient border bottom ── */
+.topbar::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,0.18) 30%, rgba(123,47,190,0.14) 70%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ── Hub close button — rotate on hover ── */
+@media (hover: hover) {
+  .hub-close:hover {
+    transform: rotate(90deg);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), border-color 0.15s ease, color 0.15s ease;
+  }
+}
+
+/* ── Hub category chips — spring ── */
+.hub-cat {
+  transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.hub-cat:active { transform: scale(0.93) !important; }
+@media (hover: hover) {
+  .hub-cat:hover { transform: translateY(-1px); }
+  .hub-cat.active:hover { box-shadow: 0 0 14px rgba(0,212,255,0.2); }
+}
+
+/* ── Profile panel buttons ── */
+#prof-save, #prof-orbitplus {
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.2s ease !important;
+}
+@media (hover: hover) {
+  #prof-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0,212,255,0.35), 0 4px 12px rgba(123,47,190,0.2) !important;
+  }
+  #prof-orbitplus:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(123,47,190,0.25) !important;
+  }
+}
+
+/* ── Email lang / profile category buttons ── */
+.email-lang-btn, .prof-cat-btn {
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+              background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+}
+.email-lang-btn:active, .prof-cat-btn:active { transform: scale(0.93) !important; }
+
+/* ── Lang dropdown options ── */
+.lang-option { transition: background 0.14s ease, color 0.14s ease !important; }
+
+/* ── Focus rings ── */
+:focus-visible {
+  outline: 2px solid rgba(0,212,255,0.55);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Scrollbars — ultra thin ── */
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
+*::-webkit-scrollbar { width: 2px; height: 2px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
