@@ -9,7 +9,7 @@ import {
   getProfile, saveProfile, markRead, isRead,
   getStats, getPersonalizedFeed,
 } from './PersonalizationService.js';
-import { getUser, logout as authLogout } from './AuthManager.js';
+import { getUser, logout as authLogout, updateProfile as syncProfile } from './AuthManager.js';
 import { recordSignal, getImplicitInterests, getSidebarOrder } from './ChronosEngine.js';
 import { playBrief, stopBrief, isPlaying, isAvailable as audioAvailable } from './AudioBrief.js';
 import { openOrbitPlus } from './OrbitPlus.js';
@@ -74,6 +74,16 @@ function scheduleDailyBrief(getLiveNews) {
 // HTML-escape
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Render article content: only allow the known "Read full article" link pattern.
+// Strips any non-https href to neutralise javascript:/data: XSS from poisoned feeds.
+function _safeContent(item) {
+  const raw = item.content || '';
+  if (!raw) return '';
+  const safeLink = /^https?:\/\//i.test(item.url || '') ? item.url : '';
+  if (!safeLink) return '';
+  return `<a href="${safeLink}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:linear-gradient(135deg,#00D4FF,#7B2FBE);border-radius:99px;font-size:13px;font-weight:600;color:#fff;text-decoration:none">Read full article →</a>`;
 }
 
 // Country badge — CSS-only, reliable on all platforms, premium look
@@ -421,7 +431,7 @@ export class UIManager {
       metaEl.innerHTML =
         `<span class="orbit-card-cat">${cat.icon} ${esc(catLabel)}</span>` +
         (isMulti
-          ? `<span class="orbit-card-coverage" title="${esc((n._sources||[]).join(', '))}">+${coverageCount - 1} ${coverageCount === 2 ? 'fuente' : 'fuentes'}</span>`
+          ? `<span class="orbit-card-coverage" title="${esc((n._sources||[]).join(', '))}">+${coverageCount - 1} ${coverageCount === 2 ? t('source_one') : t('source_many')}</span>`
           : `<span class="orbit-card-source">${esc(n.source || 'News')}</span>`
         ) +
         countryBadge +
@@ -639,7 +649,7 @@ export class UIManager {
         `<div style="font-size:10px;font-weight:700;letter-spacing:.15em;color:#00D4FF;margin-bottom:8px">${esc(t('ai_summary')||'✦ AI SUMMARY')}</div>` +
         `<div style="font-size:14px;color:rgba(255,255,255,0.7);line-height:1.65">${esc(newsItem.summary||'Read the full article for details.')}</div>` +
       `</div>` +
-      `<div style="font-size:15px;color:rgba(255,255,255,0.65);line-height:1.8">${newsItem.content||''}</div>` +
+      `<div style="font-size:15px;color:rgba(255,255,255,0.65);line-height:1.8">${_safeContent(newsItem)}</div>` +
       `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1)">` +
         (newsItem.tags||[]).map(tag => `<span style="padding:5px 12px;border-radius:99px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);font-size:12px;color:rgba(255,255,255,0.55)">#${esc(tag)}</span>`).join('') +
       `</div>`;
@@ -775,19 +785,19 @@ export class UIManager {
           <span class="debrief-mood-dot" style="background:${moodColor}"></span>
           ${esc(brief.mood)}
         </div>
-        <div class="debrief-cover-count">${brief.items.length} historias seleccionadas para ti</div>
+        <div class="debrief-cover-count">${brief.items.length} ${t('debrief_cover_stories')}</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
           <button class="debrief-start" id="debrief-start">
             ${esc(t('debrief_start') || 'INICIAR BRIEFING')}
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
           ${audioAvailable() ? `
-          <button class="debrief-audio-btn" id="debrief-audio" title="Escuchar en voz">
+          <button class="debrief-audio-btn" id="debrief-audio" title="${t('audio_listen')}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-            Audio Brief
+            ${t('audio_brief_btn')}
           </button>` : ''}
         </div>
-        <p class="debrief-cover-hint">Desliza o toca Siguiente para avanzar</p>
+        <p class="debrief-cover-hint">${t('debrief_hint_swipe')}</p>
       </div>
     `;
 
@@ -802,13 +812,13 @@ export class UIManager {
       audioBtn.onclick = () => {
         if (isPlaying()) {
           stopBrief();
-          audioBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Audio Brief`;
+          audioBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> ${t('audio_brief_btn')}`;
           return;
         }
-        audioBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Parar`;
+        audioBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> ${t('audio_stop')}`;
         playBrief(brief, getLang(), {
-          onEnd:   () => { audioBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Audio Brief`; },
-          onError: (e) => { console.warn('[Audio]', e); audioBtn.innerHTML = 'Audio no disponible'; },
+          onEnd:   () => { audioBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> ${t('audio_brief_btn')}`; },
+          onError: (e) => { console.warn('[Audio]', e); audioBtn.innerHTML = t('audio_unavailable'); },
         });
       };
     }
@@ -829,9 +839,9 @@ export class UIManager {
                            story.sentiment < -0.2 ? '#FF4757' : '#FFD700';
     const sentimentPct   = Math.round(((story.sentiment||0) + 1) / 2 * 100);
 
-    const impactLabel = story.intensity > 0.85 ? 'CRÍTICO' :
-                        story.intensity > 0.70 ? 'RELEVANTE' :
-                        story.intensity > 0.55 ? 'IMPORTANTE' : 'INFORMATIVO';
+    const impactLabel = story.intensity > 0.85 ? t('impact_critical') :
+                        story.intensity > 0.70 ? t('impact_relevant') :
+                        story.intensity > 0.55 ? t('impact_important') : t('impact_informative');
 
     overlay.innerHTML = `
       <div class="debrief-story" id="debrief-story"
@@ -859,25 +869,25 @@ export class UIManager {
         <p class="debrief-summary">${esc((story.summary||'').slice(0, 180))}…</p>
 
         <div class="debrief-sentiment-row">
-          <span style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:.08em">SENTIMIENTO GLOBAL</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:.08em">${t('debrief_sentiment')}</span>
           <div class="debrief-sentiment-bar">
             <div class="debrief-sentiment-fill" style="width:${sentimentPct}%;background:${sentimentColor}"></div>
           </div>
         </div>
 
         <div class="debrief-why">
-          <div style="font-size:9px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,0.35);margin-bottom:6px">POR QUÉ TE IMPORTA</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,0.35);margin-bottom:6px">${t('debrief_why')}</div>
           <p>${esc(this._whyItMatters(story, getImplicitInterests()))}</p>
         </div>
 
         <div class="debrief-nav">
           ${index > 0
-            ? `<button class="debrief-nav-btn" id="debrief-prev">← Anterior</button>`
+            ? `<button class="debrief-nav-btn" id="debrief-prev">${t('debrief_prev')}</button>`
             : `<div></div>`
           }
-          <button class="debrief-nav-btn debrief-read" id="debrief-read">Leer más</button>
+          <button class="debrief-nav-btn debrief-read" id="debrief-read">${t('debrief_read')}</button>
           <button class="debrief-nav-btn debrief-next" id="debrief-next">
-            ${index < total - 1 ? 'Siguiente →' : 'Finalizar ✓'}
+            ${index < total - 1 ? t('debrief_next') : t('debrief_end')}
           </button>
         </div>
       </div>
@@ -905,11 +915,11 @@ export class UIManager {
       <div class="debrief-end">
         <button class="debrief-close" id="debrief-close">✕</button>
         <div class="debrief-end-icon">◎</div>
-        <h2 class="debrief-end-title">Briefing completado</h2>
-        <p class="debrief-end-sub">Has explorado ${brief.items.length} historias clave del día.</p>
-        <div class="debrief-end-mood">Estado del mundo: <strong>${esc(brief.mood)}</strong></div>
+        <h2 class="debrief-end-title">${t('debrief_end')}</h2>
+        <p class="debrief-end-sub">${t('debrief_end_explored')} ${brief.items.length} ${t('debrief_end_key_stories')}</p>
+        <div class="debrief-end-mood">${t('debrief_mood_label')} <strong>${esc(brief.mood)}</strong></div>
         <button class="debrief-start" id="debrief-explore" style="margin-top:32px">
-          Explorar el globo →
+          ${t('debrief_explore_globe')}
         </button>
       </div>
     `;
@@ -919,16 +929,16 @@ export class UIManager {
 
   _whyItMatters(story, interests) {
     const catMessages = {
-      technology:    'Afecta directamente al ecosistema tech que sigues.',
-      sports:        'Impacto en el deporte que más consumes.',
-      entertainment: 'Relevante para la cultura de entretenimiento global.',
-      gaming:        'El sector gaming reacciona. Los mercados también.',
-      world:         'Geopolítica que condiciona los próximos meses.',
+      technology:    t('why_tech'),
+      sports:        t('why_sports'),
+      entertainment: t('why_entertainment'),
+      gaming:        t('why_gaming'),
+      world:         t('why_world'),
     };
     if (interests.includes(story.category)) {
-      return catMessages[story.category] || 'Historia clave en tus áreas de interés.';
+      return catMessages[story.category] || t('why_default');
     }
-    return `Noticia de impacto global con cobertura en ${story._sources?.length || 1}+ fuentes.`;
+    return `${t('why_global_pre')} ${story._sources?.length || 1}${t('why_global_suf')}`;
   }
 
   _addSwipe(el, onNext, onPrev) {
@@ -978,7 +988,7 @@ export class UIManager {
       if (!items.length) continue;
 
       const sourceLine = items[0]._sources?.length > 1
-        ? `<span style="font-size:9px;color:#00D4FF;font-weight:700">+${items[0]._sources.length - 1} fuentes</span>`
+        ? `<span style="font-size:9px;color:#00D4FF;font-weight:700">+${items[0]._sources.length - 1} ${t('source_many')}</span>`
         : `<span style="font-size:9px;color:rgba(255,255,255,0.28)">${esc(items[0].source || '')}</span>`;
 
       parts.push(`
@@ -995,15 +1005,15 @@ export class UIManager {
       `);
     }
 
-    if (!parts.length) return `<div style="padding:20px;color:rgba(255,255,255,0.4);font-size:14px">Cargando noticias…</div>`;
+    if (!parts.length) return `<div style="padding:20px;color:rgba(255,255,255,0.4);font-size:14px">${t('brief_loading')}</div>`;
 
     const ts = new Date().toLocaleTimeString(getLang(), { hour: '2-digit', minute: '2-digit' });
     return `
       <div class="brief-header-row">
-        <span style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:.1em">ACTUALIZADO ${ts}</span>
+        <span style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:.1em">${t('brief_updated')} ${ts}</span>
       </div>
       ${parts.join('<div class="brief-divider"></div>')}
-      <div style="margin-top:14px;font-size:10px;color:rgba(255,255,255,0.22);font-style:italic">✦ Noticias en vivo · Se actualiza con cada ciclo</div>
+      <div style="margin-top:14px;font-size:10px;color:rgba(255,255,255,0.22);font-style:italic">${t('live_updating')}</div>
     `;
   }
 
@@ -1073,100 +1083,120 @@ export class UIManager {
       saveProfile({ name: registeredName });
     }
 
+    const emailLangCurrent = p.email_language || getLang();
+
     panel.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;padding:18px;border-bottom:1px solid rgba(255,255,255,0.08)">
-        <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#00D4FF,#7B2FBE);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;flex-shrink:0">${(displayName||'N').charAt(0).toUpperCase()}</div>
-        <div style="flex:1;min-width:0">
-          <input id="prof-name" value="${esc(displayName)}" maxlength="48"
-            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 10px;font-size:14px;font-weight:600;color:#fff;width:100%;outline:none"/>
-          <div style="font-size:11px;color:rgba(255,255,255,0.32);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(userEmail) || t('prof_member') || 'ORBIT Member'}</div>
+      <div style="height:2px;background:linear-gradient(90deg,transparent,#00D4FF,#7B2FBE,transparent);flex-shrink:0"></div>
+
+      <!-- Header -->
+      <div style="position:relative;padding:22px 20px 16px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <button id="profile-panel-close" style="position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:rgba(255,255,255,0.4);font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+
+        <div style="position:relative;display:inline-block;margin-bottom:12px">
+          <div style="width:72px;height:72px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#00D4FF,#7B2FBE);box-shadow:0 0 28px rgba(0,212,255,0.22);display:inline-flex">
+            <div style="width:100%;height:100%;border-radius:50%;background:#0D0D1C;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;letter-spacing:-.01em">${(displayName||'N').charAt(0).toUpperCase()}</div>
+          </div>
+          <div style="position:absolute;bottom:2px;right:2px;width:13px;height:13px;border-radius:50%;background:#00FF88;border:2px solid #0D0D1C;box-shadow:0 0 8px rgba(0,255,136,0.5)"></div>
         </div>
-        <button id="profile-panel-close" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;color:rgba(255,255,255,0.5);font-size:14px;flex-shrink:0">✕</button>
+
+        <div style="position:relative;display:inline-block;width:100%;max-width:220px">
+          <input id="prof-name" value="${esc(displayName)}" maxlength="48" placeholder="Tu nombre"
+            style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.15);padding:4px 0;font-size:16px;font-weight:700;color:#fff;text-align:center;outline:none;font-family:'Space Grotesk',sans-serif;box-sizing:border-box"/>
+        </div>
+
+        <div style="font-size:11px;color:rgba(255,255,255,0.28);margin-top:6px;letter-spacing:.02em">${esc(userEmail)}</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:3px 10px;background:linear-gradient(135deg,rgba(0,212,255,0.1),rgba(123,47,190,0.1));border:1px solid rgba(0,212,255,0.2);border-radius:99px">
+          <div style="width:5px;height:5px;border-radius:50%;background:linear-gradient(135deg,#00D4FF,#7B2FBE)"></div>
+          <span style="font-size:9px;font-weight:800;letter-spacing:.14em;color:#00D4FF">ORBIT MEMBER</span>
+        </div>
       </div>
 
-      <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.08)">
-        <div style="flex:1;text-align:center;padding:14px 8px">
-          <div style="font-size:22px;font-weight:700;color:#fff">${stats.totalRead}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px">${t('profile_read')||'Read'}</div>
+      <!-- Stats strip -->
+      <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <div style="flex:1;text-align:center;padding:13px 6px">
+          <div style="font-size:22px;font-weight:800;background:linear-gradient(135deg,#00D4FF,#7B2FBE);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${stats.totalRead}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,0.3);margin-top:2px">${t('profile_read')||'LEÍDAS'}</div>
         </div>
-        <div style="flex:1;text-align:center;padding:14px 8px;border-left:1px solid rgba(255,255,255,0.08)">
-          <div style="font-size:22px;font-weight:700;color:#fff">${stats.countries}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px">${t('profile_countries')||'Countries'}</div>
+        <div style="flex:1;text-align:center;padding:13px 6px;border-left:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:22px;font-weight:800;color:#fff">${stats.countries}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,0.3);margin-top:2px">${t('profile_countries')||'PAÍSES'}</div>
         </div>
-        <div style="flex:1;text-align:center;padding:14px 8px;border-left:1px solid rgba(255,255,255,0.08)">
-          <div style="font-size:22px;font-weight:700;color:#fff">${favCats.length}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px">Top Intereses</div>
+        <div style="flex:1;text-align:center;padding:13px 6px;border-left:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:22px;font-weight:800;background:linear-gradient(135deg,#00D4FF,#7B2FBE);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${favCats.length}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,0.3);margin-top:2px">${t('profile_top_interests')||'INTERESES'}</div>
         </div>
       </div>
 
-      <div style="overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 320px)">
-        <!-- Daily Brief settings -->
-        <div style="background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(123,47,190,0.08));border:1px solid rgba(0,212,255,0.15);border-radius:12px;padding:14px">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:#00D4FF;margin-bottom:8px">${t('prof_brief_title') || '📬 RESUMEN DIARIO A LAS 20:00'}</div>
-          <p style="font-size:12.5px;color:rgba(255,255,255,0.6);line-height:1.5;margin:0 0 12px">${t('prof_brief_desc') || 'Las 3 mejores noticias de tus categorías favoritas cada tarde.'}</p>
+      <!-- Scrollable body -->
+      <div style="overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px;flex:1;min-height:0">
 
-          <!-- Email language selector -->
-          <div style="margin-bottom:12px">
-            <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,0.35);margin-bottom:7px">${t('prof_email_lang') || 'IDIOMA DEL EMAIL'}</div>
-            <div id="prof-email-lang" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <!-- Daily Brief card -->
+        <div style="background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(123,47,190,0.06));border:1px solid rgba(0,212,255,0.14);border-radius:14px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid rgba(0,212,255,0.1)">
+            <span style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#00D4FF">📬 RESUMEN DIARIO</span>
+            <span style="font-size:8px;font-weight:700;letter-spacing:.1em;padding:2px 8px;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);border-radius:99px;color:#00D4FF">20:00 · EN VIVO</span>
+          </div>
+          <div style="padding:12px 14px">
+            <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,0.3);margin-bottom:8px">${t('prof_email_lang')||'IDIOMA DEL EMAIL'}</div>
+            <div id="prof-email-lang" style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
               ${[
                 { code:'es', flag:'🇪🇸', label:'Español' },
                 { code:'en', flag:'🇬🇧', label:'English' },
                 { code:'fr', flag:'🇫🇷', label:'Français' },
                 { code:'de', flag:'🇩🇪', label:'Deutsch' },
               ].map(l => {
-                const sel = (p.email_language || p.language || getLang()) === l.code;
-                return `<button type="button" class="email-lang-btn" data-lang="${l.code}" ${sel ? 'data-selected="true"' : ''} style="padding:8px 6px;background:${sel ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.05)'};border:1px solid ${sel ? 'rgba(0,212,255,0.4)' : 'rgba(255,255,255,0.1)'};border-radius:8px;font-size:12px;font-weight:600;color:${sel ? '#00D4FF' : 'rgba(255,255,255,0.5)'};cursor:pointer">${l.flag} ${l.label}</button>`;
+                const sel = emailLangCurrent === l.code;
+                return `<button type="button" class="email-lang-btn" data-lang="${l.code}" ${sel ? 'data-selected="true"' : ''} style="padding:7px 5px;background:${sel ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)'};border:1px solid ${sel ? 'rgba(0,212,255,0.4)' : 'rgba(255,255,255,0.08)'};border-radius:8px;font-size:11.5px;font-weight:600;color:${sel ? '#00D4FF' : 'rgba(255,255,255,0.4)'};cursor:pointer;transition:all .15s">${l.flag} ${l.label}</button>`;
               }).join('')}
             </div>
           </div>
-
-          <button id="notif-btn" style="padding:7px 16px;background:linear-gradient(135deg,#00D4FF,#7B2FBE);border:none;border-radius:99px;font-size:13px;font-weight:600;color:#fff;cursor:pointer">
-            ${t('prof_notif_btn') || 'Activar notificaciones'}
-          </button>
         </div>
 
+        <!-- Interests -->
         <div>
-          <div style="font-size:10px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.4);margin-bottom:10px">${t('prof_interests') || 'INTERESTS'}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px" id="prof-cats">
+          <div style="font-size:9px;font-weight:800;letter-spacing:.15em;color:rgba(255,255,255,0.35);margin-bottom:9px">${t('prof_interests')||'INTERESES'}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px" id="prof-cats">
             ${catList.map(cat => {
               const c = CATEGORIES[cat];
               const active = p.categories.includes(cat);
               const fav    = isFavorite(cat);
               return `<button class="prof-cat-btn ${active?'pca':''}" data-cat="${cat}"
-                style="padding:7px 14px;border-radius:99px;font-size:12.5px;cursor:pointer;
-                       background:${active?c.bg:'rgba(255,255,255,0.05)'};
-                       color:${active?c.color:'rgba(255,255,255,0.5)'};
-                       border:1px solid ${active?c.color+'44':'rgba(255,255,255,0.1)'}">
-                ${c.icon} ${t('cat_'+cat)||c.label} ${fav?'⭐':''}
+                style="padding:6px 12px;border-radius:99px;font-size:12px;cursor:pointer;
+                       background:${active?c.bg:'rgba(255,255,255,0.04)'};
+                       color:${active?c.color:'rgba(255,255,255,0.4)'};
+                       border:1px solid ${active?c.color+'55':'rgba(255,255,255,0.08)'}">
+                ${c.icon} ${t('cat_'+cat)||c.label}${fav?' ✦':''}
               </button>`;
             }).join('')}
           </div>
         </div>
 
+        <!-- Countries -->
         <div>
-          <div style="font-size:10px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.4);margin-bottom:10px">${t('prof_countries') || 'FOLLOWED COUNTRIES'}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px" id="prof-countries">
+          <div style="font-size:9px;font-weight:800;letter-spacing:.15em;color:rgba(255,255,255,0.35);margin-bottom:9px">${t('prof_countries')||'PAÍSES SEGUIDOS'}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px" id="prof-countries">
             ${countries.map(code => {
               const active = p.followedCountries.includes(code);
               return `<button class="prof-country-btn ${active?'pca':''}" data-country="${code}"
-                style="padding:7px 12px;border-radius:99px;font-size:12.5px;cursor:pointer;font-weight:700;letter-spacing:.04em;
-                       background:${active?'rgba(0,212,255,0.12)':'rgba(255,255,255,0.05)'};
-                       color:${active?'#00D4FF':'rgba(255,255,255,0.5)'};
-                       border:1px solid ${active?'rgba(0,212,255,0.3)':'rgba(255,255,255,0.1)'}">
-                ${code}
+                style="padding:5px 11px;border-radius:99px;font-size:11.5px;cursor:pointer;font-weight:700;letter-spacing:.06em;
+                       background:${active?'rgba(0,212,255,0.12)':'rgba(255,255,255,0.04)'};
+                       color:${active?'#00D4FF':'rgba(255,255,255,0.35)'};
+                       border:1px solid ${active?'rgba(0,212,255,0.3)':'rgba(255,255,255,0.08)'}">
+                ${COUNTRY_FLAGS[code]||''} ${code}
               </button>`;
             }).join('')}
           </div>
         </div>
 
-        <!-- ORBIT+ upgrade CTA -->
-        <button id="prof-orbitplus" style="width:100%;padding:13px;background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(123,47,190,0.15));border:1px solid rgba(0,212,255,0.3);border-radius:12px;font-size:14px;font-weight:700;color:#00D4FF;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Space Grotesk',sans-serif">
-          ⚡ Descubrir ORBIT+
-        </button>
+        <!-- Actions -->
+        <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px">
+          <button id="prof-save" style="width:100%;padding:13px;background:linear-gradient(135deg,#00D4FF,#7B2FBE);border-radius:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;border:none;letter-spacing:.02em;font-family:'Space Grotesk',sans-serif;box-shadow:0 4px 20px rgba(0,212,255,0.25)">${t('prof_save')||'Guardar cambios'}</button>
+          <button id="prof-orbitplus" style="width:100%;padding:12px;background:linear-gradient(135deg,rgba(123,47,190,0.15),rgba(0,212,255,0.08));border:1px solid rgba(123,47,190,0.4);border-radius:12px;font-size:14px;font-weight:700;color:#A855F7;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Grotesk',sans-serif">
+            ✦ ${t('discover_orbit_plus')||'Descubrir ORBIT+'}
+          </button>
+          <button id="prof-logout" style="width:100%;padding:10px;background:transparent;border:none;font-size:13px;font-weight:600;color:rgba(255,71,87,0.55);cursor:pointer;letter-spacing:.02em">${t('prof_logout')||'Cerrar sesión'}</button>
+        </div>
 
-        <button id="prof-save" style="width:100%;padding:12px;background:linear-gradient(135deg,#00D4FF,#7B2FBE);border-radius:12px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;border:none">${t('prof_save') || 'Guardar perfil'}</button>
-        <button id="prof-logout" style="width:100%;padding:11px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.25);border-radius:12px;font-size:14px;font-weight:600;color:#FF4757;cursor:pointer;margin-top:4px">${t('prof_logout') || 'Cerrar sesión'}</button>
       </div>
     `;
 
@@ -1188,9 +1218,9 @@ export class UIManager {
         btn.classList.toggle('pca');
         const active = btn.classList.contains('pca');
         const c = CATEGORIES[btn.dataset.cat];
-        btn.style.background = active ? c.bg : 'rgba(255,255,255,0.05)';
-        btn.style.color      = active ? c.color : 'rgba(255,255,255,0.5)';
-        btn.style.border     = `1px solid ${active ? c.color+'44' : 'rgba(255,255,255,0.1)'}`;
+        btn.style.background = active ? c.bg : 'rgba(255,255,255,0.04)';
+        btn.style.color      = active ? c.color : 'rgba(255,255,255,0.4)';
+        btn.style.border     = `1px solid ${active ? c.color+'55' : 'rgba(255,255,255,0.08)'}`;
       });
     });
 
@@ -1198,9 +1228,9 @@ export class UIManager {
     panel.querySelectorAll('.email-lang-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         panel.querySelectorAll('.email-lang-btn').forEach(b => {
-          b.style.background   = 'rgba(255,255,255,0.05)';
-          b.style.borderColor  = 'rgba(255,255,255,0.1)';
-          b.style.color        = 'rgba(255,255,255,0.5)';
+          b.style.background   = 'rgba(255,255,255,0.04)';
+          b.style.borderColor  = 'rgba(255,255,255,0.08)';
+          b.style.color        = 'rgba(255,255,255,0.4)';
           delete b.dataset.selected;
         });
         btn.style.background  = 'rgba(0,212,255,0.15)';
@@ -1261,14 +1291,8 @@ export class UIManager {
         }, 2000);
 
         // Supabase sync in background (fire-and-forget)
-        const user = getUser();
-        if (user?.id) {
-          const API = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://orbit-news-engine-production.up.railway.app';
-          fetch(`${API}/api/auth/profile/${user.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, language: email_language, favorites: categories }),
-          }).catch(() => {});
+        if (getUser()?.id) {
+          syncProfile({ name, email_language, favorites: categories }).catch(() => {});
         }
       });
     }
@@ -1351,8 +1375,8 @@ export class UIManager {
         <span style="margin-left:auto;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:rgba(0,212,255,.15);color:#00D4FF;letter-spacing:.06em">LIVE</span>
       </div>
       <div style="display:flex;gap:14px;margin-bottom:8px">
-        <div style="font-size:11px;color:rgba(255,255,255,.45)">Actividad <span style="color:#fff;font-weight:700">${pct}%</span></div>
-        <div style="font-size:11px;color:rgba(255,255,255,.45)">Noticias <span style="color:#fff;font-weight:700">${count}</span></div>
+        <div style="font-size:11px;color:rgba(255,255,255,.45)">${t('hotspot_activity')} <span style="color:#fff;font-weight:700">${pct}%</span></div>
+        <div style="font-size:11px;color:rgba(255,255,255,.45)">${t('hotspot_news')} <span style="color:#fff;font-weight:700">${count}</span></div>
         <div style="font-size:11px">${trending}</div>
       </div>
       ${headline ? `<div style="font-size:11px;color:rgba(255,255,255,.5);line-height:1.45;border-top:1px solid rgba(255,255,255,.07);padding-top:7px">${headline}…</div>` : ''}
@@ -1653,7 +1677,7 @@ export class UIManager {
       .slice(0, 20)
       .map(([label, count], i) => ({
         label,
-        count: `${Math.round(count)} artículos`,
+        count: `${Math.round(count)} ${t('trending_articles')}`,
         pulse: Math.min(count / 20, 1),
         hot:   count >= 10,
         idx:   i,
@@ -1766,7 +1790,7 @@ export class UIManager {
           const h = parseFloat(now.toLocaleTimeString('en-US', { timeZone: cfg.tz, hour:'2-digit', minute:'2-digit', hour12: false }).replace(':', '.'));
           const isOpen   = h >= cfg.mktOpen[0] && h < cfg.mktOpen[1];
           dot.style.background = isOpen ? '#00FF88' : 'rgba(255,255,255,0.2)';
-          dot.title = isOpen ? 'Market open' : 'Market closed';
+          dot.title = isOpen ? t('market_open') : t('market_closed');
         }
       });
     };

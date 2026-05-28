@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script type="module" crossorigin src="./assets/index-BEzrUrYN.js"></script>
+  <script type="module" crossorigin src="./assets/index-CejX1cFi.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/three-DhVG4OGD.js">
   <link rel="stylesheet" crossorigin href="./assets/index-LZIjyWch.css">
 </head>
@@ -34,24 +34,24 @@
       </div>
 
       <div class="aw-hero">
-        <h1 class="aw-title">Las noticias<br>del <span class="aw-grad">futuro</span></h1>
-        <p class="aw-sub">Navega un planeta Tierra 3D en tiempo real. Descubre lo que ocurre ahora mismo en cualquier rincón del mundo.</p>
+        <h1 class="aw-title" data-i18n-html="aw_title_html">Las noticias<br>del <span class="aw-grad">futuro</span></h1>
+        <p class="aw-sub" data-i18n="aw_subtitle">Navega un planeta Tierra 3D en tiempo real. Descubre lo que ocurre ahora mismo en cualquier rincón del mundo.</p>
       </div>
 
       <!-- Form -->
       <form id="aw-form" class="aw-form" data-mode="register">
         <div class="aw-tabs">
-          <button type="button" class="aw-tab active" data-tab="register">Crear cuenta</button>
-          <button type="button" class="aw-tab" data-tab="login">Iniciar sesión</button>
+          <button type="button" class="aw-tab active" data-tab="register" data-i18n="aw_create_account">Crear cuenta</button>
+          <button type="button" class="aw-tab" data-tab="login" data-i18n="aw_sign_in">Iniciar sesión</button>
         </div>
 
-        <input id="aw-name"  class="aw-input" type="text"     placeholder="Tu nombre"                 autocomplete="name"/>
+        <input id="aw-name"  class="aw-input" type="text"     data-i18n-ph="aw_your_name" placeholder="Tu nombre"                 autocomplete="name"/>
         <input id="aw-email" class="aw-input" type="email"    placeholder="Email"    required          autocomplete="email"/>
-        <input id="aw-pass"  class="aw-input" type="password" placeholder="Contraseña (mín. 6 chars)" required autocomplete="new-password"/>
+        <input id="aw-pass"  class="aw-input" type="password" data-i18n-ph="aw_password" placeholder="Contraseña (mín. 6 chars)" required autocomplete="new-password"/>
 
         <label class="aw-brief-label" id="aw-brief-row">
           <input type="checkbox" id="aw-brief" checked/>
-          <span>Recibir Daily Brief a las 20:00 con las noticias del día</span>
+          <span data-i18n="aw_brief_checkbox">Recibir Daily Brief a las 20:00 con las noticias del día</span>
         </label>
 
         <div id="aw-lang-row">
@@ -68,19 +68,19 @@
         <div class="aw-success hidden" id="aw-success"></div>
 
         <button type="submit" class="aw-submit" id="aw-submit">
-          <span id="aw-submit-text">Crear cuenta gratis</span>
+          <span id="aw-submit-text" data-i18n="aw_submit_register">Crear cuenta gratis</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
       </form>
 
-      <p class="aw-disclaimer">Al continuar aceptas los <button type="button" onclick="openLegal('tos')"  style="background:none;border:none;color:#00D4FF;cursor:pointer;font-size:inherit;font-family:inherit;padding:0;text-decoration:underline">Términos de Uso</button> y la <button type="button" onclick="openLegal('priv')" style="background:none;border:none;color:#00D4FF;cursor:pointer;font-size:inherit;font-family:inherit;padding:0;text-decoration:underline">Política de Privacidad</button> de ORBIT.</p>
+      <p class="aw-disclaimer"><span data-i18n="aw_disclaimer_pre">Al continuar aceptas los</span> <button type="button" onclick="openLegal('tos')"  style="background:none;border:none;color:#00D4FF;cursor:pointer;font-size:inherit;font-family:inherit;padding:0;text-decoration:underline"><span data-i18n="legal_tos">Términos de Uso</span></button> <span data-i18n="aw_disclaimer_and">y la</span> <button type="button" onclick="openLegal('priv')" style="background:none;border:none;color:#00D4FF;cursor:pointer;font-size:inherit;font-family:inherit;padding:0;text-decoration:underline"><span data-i18n="legal_priv">Política de Privacidad</span></button> <span data-i18n="aw_disclaimer_post">de ORBIT.</span></p>
 
       <!-- Features pills -->
       <div class="aw-pills">
-        <span class="aw-pill">🌍 Globo 3D en vivo</span>
-        <span class="aw-pill">📰 800+ fuentes</span>
-        <span class="aw-pill">🌐 4 idiomas</span>
-        <span class="aw-pill">📧 Daily Brief 20:00</span>
+        <span class="aw-pill" data-i18n="aw_pill_globe">🌍 Globo 3D en vivo</span>
+        <span class="aw-pill" data-i18n="aw_pill_sources">📰 800+ fuentes</span>
+        <span class="aw-pill" data-i18n="aw_pill_lang">🌐 4 idiomas</span>
+        <span class="aw-pill" data-i18n="aw_pill_brief">📧 Daily Brief 20:00</span>
       </div>
     </div>
 
@@ -92,13 +92,13 @@
 
       <!-- Floating cards -->
       <div class="aw-card aw-card-1">
-        <div class="aw-card-cat">⚽ Deportes · Madrid</div>
-        <div class="aw-card-title">Champions League Final: el mundo se detiene</div>
+        <div class="aw-card-cat" data-i18n="aw_card1_cat">⚽ Deportes · Madrid</div>
+        <div class="aw-card-title" data-i18n="aw_card1_title">Champions League Final: el mundo se detiene</div>
         <div class="aw-card-meta">Marca · 2h ago</div>
       </div>
       <div class="aw-card aw-card-2">
-        <div class="aw-card-cat">💻 Tecnología · San Francisco</div>
-        <div class="aw-card-title">OpenAI anuncia el modelo más avanzado de la historia</div>
+        <div class="aw-card-cat" data-i18n="aw_card2_cat">💻 Tecnología · San Francisco</div>
+        <div class="aw-card-title" data-i18n="aw_card2_title">OpenAI anuncia el modelo más avanzado de la historia</div>
         <div class="aw-card-meta">The Verge · 1h ago</div>
       </div>
     </div>
@@ -188,7 +188,7 @@
       <div class="sidebar-version-badge" id="sidebar-version">
         <span class="svb-dot"></span>
         <span class="svb-label">ORBIT <span id="svb-num">v1.4</span></span>
-        <span class="svb-status">EN VIVO</span>
+        <span class="svb-status" data-i18n="live_status">EN VIVO</span>
       </div>
 
       <div class="sidebar-section-label" data-i18n="lbl_world_time">GLOBAL TIME</div>
@@ -330,8 +330,8 @@
         <div class="stat-item"><span class="stat-num">8</span><span class="stat-lbl" data-i18n="profile_countries">Countries</span></div>
       </div>
       <div style="margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:16px;justify-content:center">
-        <button type="button" onclick="openLegal('tos')"  style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:11px;font-family:inherit;padding:0">Términos de Uso</button>
-        <button type="button" onclick="openLegal('priv')" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:11px;font-family:inherit;padding:0">Política de Privacidad</button>
+        <button type="button" onclick="openLegal('tos')"  style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:11px;font-family:inherit;padding:0"><span data-i18n="legal_tos">Términos de Uso</span></button>
+        <button type="button" onclick="openLegal('priv')" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:11px;font-family:inherit;padding:0"><span data-i18n="legal_priv">Política de Privacidad</span></button>
         <span style="color:rgba(255,255,255,0.15);font-size:11px">© 2026 ORBIT</span>
       </div>
     </div>
@@ -372,8 +372,8 @@
     <div style="max-width:680px;margin:0 auto;background:#0D0D1C;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:36px 32px;position:relative">
       <button id="legal-close" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);width:32px;height:32px;border-radius:50%;cursor:pointer;color:rgba(255,255,255,0.6);font-size:18px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
       <div style="display:flex;gap:8px;margin-bottom:28px">
-        <button id="legal-tab-tos"  class="legal-tab active" onclick="showLegalTab('tos')"  style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:rgba(0,212,255,0.15);color:#00D4FF">Términos de Uso</button>
-        <button id="legal-tab-priv" class="legal-tab"        onclick="showLegalTab('priv')" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45)">Política de Privacidad</button>
+        <button id="legal-tab-tos"  class="legal-tab active" onclick="showLegalTab('tos')"  style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:rgba(0,212,255,0.15);color:#00D4FF"><span data-i18n="legal_tos">Términos de Uso</span></button>
+        <button id="legal-tab-priv" class="legal-tab"        onclick="showLegalTab('priv')" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45)"><span data-i18n="legal_priv">Política de Privacidad</span></button>
       </div>
       <div id="legal-content" style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.75"></div>
     </div>
