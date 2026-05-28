@@ -1922,6 +1922,189 @@ button:active:not(.orbit-card):not(.sidebar-item) {
   transition: transform 0.08s ease !important;
 }
 
+/* ══════════════════════════════════════════════════════════
+   COUNTRY NEWS PANEL — PREMIUM REDESIGN
+   ══════════════════════════════════════════════════════════ */
+
+/* Panel base */
+.news-panel {
+  background: linear-gradient(160deg, #07071A 0%, #0B0B20 55%, #090916 100%) !important;
+}
+
+/* ── Header: hero section with gradient glow ── */
+.hub-header {
+  padding: 22px 20px 18px !important;
+  background: linear-gradient(180deg, rgba(0,212,255,0.07) 0%, transparent 100%) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  position: relative !important;
+}
+/* Thin accent line at very top of panel */
+.hub-header::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,0.5) 40%, rgba(123,47,190,0.4) 70%, transparent 100%);
+}
+
+/* Country flag badge */
+.hub-flag {
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 20px rgba(0,212,255,0.25), 0 2px 8px rgba(0,0,0,0.4) !important;
+  background: linear-gradient(135deg, rgba(0,212,255,0.22), rgba(0,212,255,0.1)) !important;
+}
+
+/* Country name */
+.hub-country {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.15 !important;
+  background: linear-gradient(135deg, #FFFFFF 50%, rgba(200,220,255,0.75) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Article count */
+.hub-meta span {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: rgba(255,255,255,0.42) !important;
+}
+
+/* Close button */
+.hub-close {
+  width: 34px !important; height: 34px !important;
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+@media (hover: hover) {
+  .hub-close:hover {
+    background: rgba(255,255,255,0.1) !important;
+    transform: scale(1.08) rotate(90deg) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    color: white !important;
+  }
+}
+
+/* Activity bar: thicker */
+.hub-activity-bar { height: 4px !important; }
+.hub-activity-seg { opacity: 0.85; }
+
+/* Category chips: add accent dot */
+.hub-cat { gap: 5px; }
+.hub-cat[data-cat="sports"]::before        { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
+.hub-cat[data-cat="technology"]::before    { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #818CF8; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
+.hub-cat[data-cat="entertainment"]::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #FB923C; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
+.hub-cat[data-cat="gaming"]::before        { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #C084FC; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
+.hub-cat[data-cat="trending"]::before      { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #F59E0B; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
+.hub-cat[data-cat="world"]::before         { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #00D4FF; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
+
+/* ── Sort tabs: clean underline style ── */
+.hub-sort-tabs {
+  padding: 0 18px !important;
+  gap: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  background: rgba(255,255,255,0.015) !important;
+}
+.hub-sort {
+  padding: 11px 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: rgba(255,255,255,0.35) !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  background: none !important;
+  margin-bottom: -1px !important;
+  transition: color 0.18s ease, border-color 0.18s ease !important;
+  letter-spacing: 0.01em;
+}
+.hub-sort.active {
+  color: rgba(255,255,255,0.92) !important;
+  border-bottom-color: #00D4FF !important;
+  background: none !important;
+}
+.hub-sort:hover:not(.active) { color: rgba(255,255,255,0.6) !important; }
+
+/* ── Cards container: flex column ── */
+.news-cards-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 14px 14px 24px !important;
+}
+
+/* ── News card premium redesign ── */
+.orbit-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.046) 0%, rgba(10,10,30,0.0) 100%) !important;
+  border: 1px solid rgba(255,255,255,0.09) !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-radius: 14px !important;
+  position: relative !important;
+  padding: 14px 15px 12px 18px !important;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease, border-color 0.18s ease !important;
+  overflow: visible !important;
+}
+/* Left accent bar */
+.orbit-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+  background: var(--card-accent, #00D4FF);
+  border-radius: 14px 0 0 14px;
+  box-shadow: 1px 0 10px -2px var(--card-accent, rgba(0,212,255,0.6));
+  transition: opacity 0.2s ease;
+}
+/* Card hover lift */
+@media (hover: hover) {
+  .orbit-card:hover {
+    transform: translateY(-3px) !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06) !important;
+  }
+  .orbit-card:hover::before { box-shadow: 2px 0 16px -1px var(--card-accent, rgba(0,212,255,0.7)); }
+}
+.orbit-card:active { transform: scale(0.985) !important; opacity: 0.88 !important; }
+
+/* Headline */
+.orbit-card-headline {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.48 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Source name: bolder */
+.orbit-card-source {
+  font-weight: 600 !important;
+  color: rgba(255,255,255,0.5) !important;
+  font-size: 11px !important;
+}
+
+/* Multi-source strip: subtle divider */
+.orbit-card-multi-strip {
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  margin-bottom: 10px !important;
+  padding-bottom: 8px !important;
+}
+
+/* Footer: slightly more breathing room */
+.orbit-card-footer { margin-top: 2px; gap: 8px !important; }
+
+/* Like/pass buttons */
+.orbit-card-btn {
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  padding: 4px 10px !important;
+  transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+@media (hover: hover) {
+  .orbit-card-btn:hover { transform: scale(1.12); }
+}
+.orbit-card-btn:active { transform: scale(0.88) !important; }
+
 /* ── Email lang / prof-cat chips — press ── */
 .email-lang-btn:active, .prof-cat-btn:active { transform: scale(0.92) !important; }
 
