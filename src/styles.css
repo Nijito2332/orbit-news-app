@@ -862,24 +862,26 @@ h1,h2,h3,h4 { font-family: var(--font-display); }
   background: rgba(10,10,26,0.97);
   border: 1px solid rgba(255,255,255,0.09);
   border-radius: 16px;
-  overflow: hidden;
+  /* NO overflow:hidden — causes Chrome to collapse body height during opacity animation */
   cursor: pointer;
   opacity: 0;
-  animation: card-show 0.32s ease forwards;
+  animation: card-show 0.28s ease forwards;
   transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
               box-shadow 0.22s ease,
               border-color 0.18s ease;
 }
-.orbit-card[data-read="1"] { filter: brightness(0.7) saturate(0.7); }
-@keyframes card-show { to { opacity: 1; } }
+.orbit-card[data-read="1"] { filter: brightness(0.65) saturate(0.6); }
+@keyframes card-show { from { opacity: 0; } to { opacity: 1; } }
 .orbit-card:active { transform: scale(0.985) !important; }
 
-/* ── Source header row ── */
+/* ── Source header row — clip its own bg with matching radius ── */
 .orbit-card-srcrow {
   display: flex; align-items: center; gap: 6px;
   padding: 8px 14px 8px;
   background: var(--cat-bg, rgba(0,212,255,0.09));
   border-bottom: 1px solid rgba(255,255,255,0.06);
+  /* clip to card's top corners without relying on parent overflow:hidden */
+  border-radius: 15px 15px 0 0;
 }
 .orbit-card-srcdot {
   width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
@@ -1649,16 +1651,14 @@ body::before {
 
   /* ── Cards: properly sized with visible headlines ── */
   .news-cards-container { padding: 10px 12px 14px; gap: 8px; }
-  .orbit-card { padding: 12px 13px 11px; }
+  .orbit-card-body { padding: 11px 12px 10px; }
   .orbit-card-headline {
-    font-size: 15px;
+    font-size: 14.5px;
     line-height: 1.45;
     margin-bottom: 8px;
-    max-height: calc(15px * 1.45 * 4);
+    max-height: calc(14.5px * 1.45 * 4);
   }
   .orbit-card-summary { font-size: 12px; margin-bottom: 9px; }
-  .orbit-card-cat { font-size: 10px; padding: 2px 7px; }
-  .orbit-card-source { font-size: 11px; }
 
   /* ── Trending bar ── */
   .trending-bar {
