@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "buildCommand": "rm -rf node_modules/.vite && npm run build",
+  "buildCommand": "echo 'using pre-built dist'",
   "outputDirectory": "dist",
   "installCommand": "npm install --prefer-online",
   "rewrites": [
