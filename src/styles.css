@@ -781,19 +781,41 @@ h1,h2,h3,h4 { font-family: var(--font-display); }
 }
 .hub-activity-seg { flex: 1; transition: flex 0.5s ease; }
 
-/* Category chips (the heart of the country-first UX) */
-.hub-cats {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  padding: 10px 14px 8px;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+/* Category chips strip */
+.hub-cats-outer {
+  position: relative; flex-shrink: 0; overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
+.hub-cats-outer::after {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0; width: 36px;
+  background: linear-gradient(90deg, transparent, var(--bg));
+  pointer-events: none; z-index: 2;
+}
+.hub-cats {
+  display: flex; gap: 6px;
+  padding: 10px 14px 10px;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none; flex-shrink: 0;
+}
+.hub-cats::-webkit-scrollbar { display: none; }
 .hub-cat {
-  padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: 99px; font-size: 12px; font-weight: 600;
   color: var(--text-50); cursor: pointer; white-space: nowrap;
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
-  transition: all var(--t-fast);
+  transition: all var(--t-fast); flex-shrink: 0;
 }
+.hub-cat-icon { font-size: 13px; line-height: 1; }
+.hub-cat-lbl  { font-size: 12px; }
+.hub-cat-count {
+  font-size: 9.5px; font-weight: 800;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.55);
+  padding: 1px 6px; border-radius: 99px;
+  letter-spacing: 0.02em;
+}
+.hub-cat.active .hub-cat-count { background: rgba(255,255,255,0.2); color: inherit; }
 .hub-cat:active { opacity: 0.7; }
 
 /* Active state — category-specific accent colors */
@@ -833,165 +855,123 @@ h1,h2,h3,h4 { font-family: var(--font-display); }
 .news-cards-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
 /* ════════════════════════════════════════════════════════
-   ORBIT NEWS CARD — Professional, headline-first design
-   Key fixes:
-   - NO overflow:hidden (was collapsing h3 to 0 height)
-   - border-top for accent (no ::before z-index conflicts)
-   - Single display value on headline (no double declaration)
-   - Headline MUST be first child in DOM order
+   ORBIT NEWS CARD — Source-Forward Premium Design
+   Structure: source-header row → body (headline+summary+footer)
    ════════════════════════════════════════════════════════ */
 .orbit-card {
-  background: #0F0F1D;
-  /* Accent bar via border-top — NO position:relative needed, NO ::before needed */
-  border-top: 2.5px solid var(--card-accent, #00D4FF);
-  border-left: 1px solid rgba(255,255,255,0.07);
-  border-right: 1px solid rgba(255,255,255,0.07);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  border-radius: 0 0 14px 14px;   /* Top corners flat due to border-top */
-  border-radius: 3px 3px 14px 14px;
-  padding: 14px 15px 13px;
-  cursor: pointer;
-  /* NO overflow:hidden — this was collapsing child elements */
-  /* NO animation with translateY — caused content shifting */
-  opacity: 0;
-  animation: card-show 0.3s ease forwards;
-}
-@keyframes card-show { to { opacity: 1; } }
-.orbit-card:active { opacity: 0.8; }
-
-/* ── HEADLINE — THE HERO OF THE CARD ──────────────────────
-   This MUST be the FIRST child element appended to .orbit-card
-   in JavaScript so it always appears at the top regardless of
-   card height constraints. Single display value: block.
-   ─────────────────────────────────────────────────────── */
-.orbit-card-headline {
-  /* Text color — defined once, no conflicts */
-  color: #FFFFFF;
-  font-size: 15.5px;
-  font-weight: 700;
-  line-height: 1.50;
-  /* Spacing: bottom margin before the meta row */
-  margin: 0 0 10px 0;
-  padding: 0;
-  /* SINGLE display value — no double declaration */
-  display: block;
-  /* Text wrapping */
-  word-break: break-word;
-  overflow-wrap: break-word;
-  /* Limit to 4 lines for long headlines */
-  max-height: calc(15.5px * 1.50 * 4);
+  background: rgba(10,10,26,0.97);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 16px;
   overflow: hidden;
+  cursor: pointer;
+  opacity: 0;
+  animation: card-show 0.32s ease forwards;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.22s ease,
+              border-color 0.18s ease;
 }
+.orbit-card[data-read="1"] { filter: brightness(0.7) saturate(0.7); }
+@keyframes card-show { to { opacity: 1; } }
+.orbit-card:active { transform: scale(0.985) !important; }
 
-/* ── Meta row: category · source · time ── */
-.orbit-card-meta {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 9px;
-  min-width: 0; /* allows children to shrink */
-}
-.orbit-card-cat {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 2.5px 8px;
-  border-radius: 99px;
-  background: var(--cat-bg, rgba(0,212,255,0.1));
-  color: var(--card-accent, #00D4FF);
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-/* Multi-source strip — shown when card aggregates multiple media */
-.orbit-card-multi-strip {
+/* ── Source header row ── */
+.orbit-card-srcrow {
   display: flex; align-items: center; gap: 6px;
-  font-size: 9.5px; font-weight: 700; letter-spacing: .08em;
-  color: var(--blue); margin-bottom: 8px;
-  padding: 4px 0; border-bottom: 1px solid rgba(0,212,255,.12);
-  text-transform: uppercase;
+  padding: 8px 14px 8px;
+  background: var(--cat-bg, rgba(0,212,255,0.09));
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.orbit-card-multi-dot {
-  width: 5px; height: 5px; border-radius: 50%; background: var(--blue);
-  flex-shrink: 0; animation: pulse-dot 1.5s ease-in-out infinite;
-  box-shadow: 0 0 6px rgba(0,212,255,.5);
+.orbit-card-srcdot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: var(--card-accent, #00D4FF);
+  box-shadow: 0 0 8px var(--card-accent, rgba(0,212,255,0.6));
 }
-.orbit-card-global { margin-left: auto; color: rgba(0,212,255,.6); font-size: 9px; }
-
-/* Country code badge — clearly visible on all platforms */
-.orbit-card-country-badge {
-  font-size: 9px; font-weight: 900; padding: 2px 6px;
-  border-radius: 4px; letter-spacing: .08em;
-  background: rgba(0,212,255,.18);
-  border: 1px solid rgba(0,212,255,.35);
-  color: #00D4FF;
+.orbit-card-srcname {
+  font-size: 10px; font-weight: 800;
+  color: rgba(255,255,255,0.72);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 120px; flex-shrink: 1;
+}
+.orbit-card-srcsep { color: rgba(255,255,255,0.2); font-size: 11px; flex-shrink: 0; }
+.orbit-card-srccat {
+  font-size: 10px; font-weight: 600;
+  color: var(--card-accent, #00D4FF);
+  white-space: nowrap; flex-shrink: 0;
+}
+.orbit-card-global-badge {
+  font-size: 8.5px; font-weight: 800; letter-spacing: 0.06em;
+  padding: 1px 5px; border-radius: 4px;
+  background: rgba(0,212,255,0.15); color: #00D4FF; flex-shrink: 0;
+}
+.orbit-card-srctime {
+  font-size: 10px; color: rgba(255,255,255,0.3);
   flex-shrink: 0; white-space: nowrap;
 }
 
-/* Coverage badge in meta row */
-.orbit-card-coverage {
-  font-size: 10px; font-weight: 700; padding: 2px 8px;
-  border-radius: 99px;
-  background: rgba(0,212,255,.1); border: 1px solid rgba(0,212,255,.22);
-  color: var(--blue); white-space: nowrap; cursor: help;
-  letter-spacing: .04em;
-}
+/* ── Card body (headline + summary + footer) ── */
+.orbit-card-body { padding: 13px 15px 12px; }
 
-.orbit-card-source {
-  font-size: 11px;
-  color: rgba(255,255,255,0.4);
+/* Headline */
+.orbit-card-headline {
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.50;
+  letter-spacing: -0.015em;
+  margin: 0 0 9px 0;
+  display: block;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-height: calc(15px * 1.5 * 4);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  min-width: 0;
-}
-.orbit-card-time {
-  font-size: 10px;
-  color: rgba(255,255,255,0.28);
-  flex-shrink: 0;
-  white-space: nowrap;
 }
 
-/* ── Summary — shown below headline ── */
+/* Summary */
 .orbit-card-summary {
-  color: rgba(255,255,255,0.55);
-  font-size: 13px;
-  line-height: 1.55;
+  color: rgba(255,255,255,0.52);
+  font-size: 12.5px;
+  line-height: 1.56;
   margin: 0 0 11px 0;
-  /* Show max 2 lines */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* ── Footer: readtime + trend + engagement ── */
+/* Footer */
 .orbit-card-footer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: nowrap;
+  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
-.orbit-card-readtime { font-size: 10px; color: rgba(255,255,255,0.28); flex-shrink: 0; }
-.orbit-card-trend { font-size: 11px; font-weight: 600; flex-shrink: 0; }
-.orbit-card-trend.rising { color: #00FF88; }
+.orbit-card-readtime {
+  font-size: 10px; color: rgba(255,255,255,0.3); flex-shrink: 0;
+}
+.orbit-card-trend { font-size: 10.5px; font-weight: 600; flex-shrink: 0; }
+.orbit-card-trend.rising { color: #34D399; }
 .orbit-card-trend.stable { color: rgba(255,255,255,0.28); }
-.orbit-card-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.orbit-card-actions { margin-left: auto; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 .orbit-card-btn {
-  padding: 3px 9px;
-  border-radius: 8px;
-  font-size: 12px;
-  cursor: pointer;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.09);
-  color: rgba(255,255,255,0.45);
-  transition: all var(--t-fast);
-  line-height: 1.4;
+  padding: 4px 10px; border-radius: 8px; font-size: 12px; cursor: pointer;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+  color: rgba(255,255,255,0.45); transition: all var(--t-fast); line-height: 1.4;
 }
-.orbit-card-btn:active { opacity: 0.7; }
-.orbit-card-btn.liked  { color: #00FF88; border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.08); }
-.orbit-card-btn.passed { color: #FF6B35; border-color: rgba(255,107,53,0.3); }
+.orbit-card-btn:active { opacity: 0.65; transform: scale(0.88); }
+.orbit-card-btn.liked  { color: #34D399; border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.1); }
+.orbit-card-btn.passed { color: #F87171; border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.08); }
 .orbit-card-eng { font-size: 10px; font-weight: 700; }
+
+/* ── Legacy classes (kept for backward compat with article modal etc.) ── */
+.orbit-card-cat { display: none; }
+.orbit-card-multi-strip { display: none; }
+.orbit-card-multi-dot { display: none; }
+.orbit-card-global { display: none; }
+.orbit-card-country-badge { display: none; }
+.orbit-card-coverage { display: none; }
+.orbit-card-source { display: none; }
+.orbit-card-time { display: none; }
+.orbit-card-meta { display: none; }
 
 /* ════════════════════════════════════════════════════════
    TRENDING BAR
@@ -1993,21 +1973,12 @@ button:active:not(.orbit-card):not(.sidebar-item) {
 .hub-activity-bar { height: 4px !important; }
 .hub-activity-seg { opacity: 0.85; }
 
-/* Category chips: add accent dot */
-.hub-cat { gap: 5px; }
-.hub-cat[data-cat="sports"]::before        { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
-.hub-cat[data-cat="technology"]::before    { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #818CF8; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
-.hub-cat[data-cat="entertainment"]::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #FB923C; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
-.hub-cat[data-cat="gaming"]::before        { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #C084FC; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
-.hub-cat[data-cat="trending"]::before      { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #F59E0B; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
-.hub-cat[data-cat="world"]::before         { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #00D4FF; flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
-
 /* ── Sort tabs: clean underline style ── */
 .hub-sort-tabs {
   padding: 0 18px !important;
   gap: 0 !important;
   border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-  background: rgba(255,255,255,0.015) !important;
+  background: rgba(255,255,255,0.012) !important;
 }
 .hub-sort {
   padding: 11px 8px !important;
@@ -2028,7 +1999,7 @@ button:active:not(.orbit-card):not(.sidebar-item) {
 }
 .hub-sort:hover:not(.active) { color: rgba(255,255,255,0.6) !important; }
 
-/* ── Cards container: flex column ── */
+/* ── Cards container ── */
 .news-cards-container {
   display: flex !important;
   flex-direction: column !important;
@@ -2036,74 +2007,25 @@ button:active:not(.orbit-card):not(.sidebar-item) {
   padding: 14px 14px 24px !important;
 }
 
-/* ── News card premium redesign ── */
-.orbit-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.046) 0%, rgba(10,10,30,0.0) 100%) !important;
-  border: 1px solid rgba(255,255,255,0.09) !important;
-  border-top: none !important;
-  border-left: none !important;
-  border-radius: 14px !important;
-  position: relative !important;
-  padding: 14px 15px 12px 18px !important;
-  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease, border-color 0.18s ease !important;
-  overflow: visible !important;
-}
-/* Left accent bar */
-.orbit-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
-  background: var(--card-accent, #00D4FF);
-  border-radius: 14px 0 0 14px;
-  box-shadow: 1px 0 10px -2px var(--card-accent, rgba(0,212,255,0.6));
-  transition: opacity 0.2s ease;
-}
-/* Card hover lift */
+/* ── Card hover lift + glow ── */
 @media (hover: hover) {
   .orbit-card:hover {
-    transform: translateY(-3px) !important;
-    border-color: rgba(255,255,255,0.15) !important;
-    box-shadow: 0 14px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06) !important;
+    transform: translateY(-3px);
+    border-color: rgba(255,255,255,0.16) !important;
+    box-shadow: 0 16px 44px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.05);
   }
-  .orbit-card:hover::before { box-shadow: 2px 0 16px -1px var(--card-accent, rgba(0,212,255,0.7)); }
-}
-.orbit-card:active { transform: scale(0.985) !important; opacity: 0.88 !important; }
-
-/* Headline */
-.orbit-card-headline {
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  line-height: 1.48 !important;
-  letter-spacing: -0.01em !important;
+  .orbit-card:hover .orbit-card-srcdot {
+    box-shadow: 0 0 12px var(--card-accent, rgba(0,212,255,0.8));
+  }
 }
 
-/* Source name: bolder */
-.orbit-card-source {
-  font-weight: 600 !important;
-  color: rgba(255,255,255,0.5) !important;
-  font-size: 11px !important;
-}
-
-/* Multi-source strip: subtle divider */
-.orbit-card-multi-strip {
-  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-  margin-bottom: 10px !important;
-  padding-bottom: 8px !important;
-}
-
-/* Footer: slightly more breathing room */
-.orbit-card-footer { margin-top: 2px; gap: 8px !important; }
-
-/* Like/pass buttons */
+/* Card buttons */
 .orbit-card-btn {
-  border-radius: 10px !important;
-  font-size: 13px !important;
-  padding: 4px 10px !important;
   transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1) !important;
 }
 @media (hover: hover) {
-  .orbit-card-btn:hover { transform: scale(1.12); }
+  .orbit-card-btn:hover { transform: scale(1.12); filter: brightness(1.2); }
 }
-.orbit-card-btn:active { transform: scale(0.88) !important; }
 
 /* ── Email lang / prof-cat chips — press ── */
 .email-lang-btn:active, .prof-cat-btn:active { transform: scale(0.92) !important; }

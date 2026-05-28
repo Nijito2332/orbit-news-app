@@ -380,100 +380,77 @@ export class UIManager {
       const liked    = engScore > 0;
       const passed   = engScore < 0;
       const alreadyR = isRead(n.id);
-      const isFav    = isFavorite(n.category);
 
-      // Engagement count for display
-      const engDisplay = engScore !== 0 ? `${engScore > 0 ? '+' : ''}${engScore}` : '';
+      const coverageCount = n._coverageCount || n.sourceCount || 1;
+      const isMulti       = coverageCount > 1;
+      const cleanSummary  = (['null','nulo','nul','nein','пусто','空','없음'].includes((n.summary||'').trim().toLowerCase()))
+        ? '' : (n.summary || '');
 
-      // ════════════════════════════════════════════════════
-      //  ORBIT CARD — Premium headline-first layout
-      //  CSS class .orbit-card handles base styling.
-      //  Headline uses SEPARATE DOM node with !important
-      //  so NO stylesheet can ever hide it.
-      // ════════════════════════════════════════════════════
+      // ── Card shell ──────────────────────────────────────────
       const card = document.createElement('article');
       card.className = 'orbit-card';
       card.style.setProperty('--card-accent', cat.color);
       card.style.setProperty('--cat-bg', cat.bg);
-      card.style.animationDelay = `${Math.min(i * 35, 400)}ms`;
-      if (alreadyR) card.style.opacity = '0.65';
+      card.style.animationDelay = `${Math.min(i * 40, 480)}ms`;
+      if (alreadyR) card.dataset.read = '1';
 
-      // ════════════════════════════════════════════════════
-      //  CARD DOM ORDER: HEADLINE FIRST
-      //  1. Headline (top, always visible even if card is short)
-      //  2. Meta (source + time)
-      //  3. Summary
-      //  4. Footer
-      // ════════════════════════════════════════════════════
+      // ── 1. Source header row ─────────────────────────────────
+      const srcRow = document.createElement('div');
+      srcRow.className = 'orbit-card-srcrow';
+      const flag14 = n.country ? flagHtml(n.country, 14) : '';
+      const srcLabel = isMulti
+        ? `${coverageCount} ${t('sources_many') || 'fuentes'}`
+        : (n.source || 'News');
+      const multiGlobe = (isMulti && n._countries?.length > 1)
+        ? `<span class="orbit-card-global-badge">Global</span>` : '';
+      srcRow.innerHTML =
+        `<span class="orbit-card-srcdot"></span>` +
+        `<span class="orbit-card-srcname">${esc(srcLabel)}</span>` +
+        `<span class="orbit-card-srcsep">·</span>` +
+        `<span class="orbit-card-srccat">${cat.icon} ${esc(catLabel)}</span>` +
+        multiGlobe +
+        `<span style="flex:1;min-width:4px"></span>` +
+        flag14 +
+        `<span class="orbit-card-srctime">${esc(n.timeAgo || '')}</span>`;
+      card.appendChild(srcRow);
 
-      // ── 1. HEADLINE — FIRST child, always at top of card ──
+      // ── 2. Body wrapper ──────────────────────────────────────
+      const body = document.createElement('div');
+      body.className = 'orbit-card-body';
+
+      // Headline
       const headline = document.createElement('h3');
       headline.className = 'orbit-card-headline';
-      // Direct DOM text node — no HTML parsing, no encoding issues
       headline.appendChild(document.createTextNode(n.title || '—'));
       if (n._translated) {
-        const txMark = document.createElement('span');
-        txMark.textContent = ' 🌐';
-        txMark.style.fontSize = '10px';
-        txMark.style.color    = '#00D4FF';
-        headline.appendChild(txMark);
+        const tx = document.createElement('span');
+        tx.textContent = ' 🌐';
+        tx.style.cssText = 'font-size:10px;color:#00D4FF;vertical-align:middle';
+        headline.appendChild(tx);
       }
-      card.appendChild(headline);
+      body.appendChild(headline);
 
-      // ── 2. Meta row + multi-source badge ──
-      const coverageCount = n._coverageCount || n.sourceCount || 1;
-      const isMulti       = coverageCount > 1;
-
-      const metaEl = document.createElement('div');
-      metaEl.className = 'orbit-card-meta';
-      // Real country flag image via flagcdn.com (works on Windows)
-      const countryBadge = n.country ? flagHtml(n.country, 18) : '';
-
-      metaEl.innerHTML =
-        `<span class="orbit-card-cat">${cat.icon} ${esc(catLabel)}</span>` +
-        (isMulti
-          ? `<span class="orbit-card-coverage" title="${esc((n._sources||[]).join(', '))}">+${coverageCount - 1} ${coverageCount === 2 ? t('source_one') : t('source_many')}</span>`
-          : `<span class="orbit-card-source">${esc(n.source || 'News')}</span>`
-        ) +
-        countryBadge +
-        `<span class="orbit-card-time">${esc(n.timeAgo || '')}</span>`;
-
-      // Multi-source banner strip at top of card
-      if (isMulti) {
-        const strip = document.createElement('div');
-        strip.className = 'orbit-card-multi-strip';
-        strip.innerHTML = `
-          <span class="orbit-card-multi-dot"></span>
-          <span>${coverageCount} medios · ${esc(n.source || '')}</span>
-          ${n._countries?.length > 1 ? `<span class="orbit-card-global">🌐 Global</span>` : ''}
-        `;
-        card.insertBefore(strip, headline);
+      // Summary
+      if (cleanSummary) {
+        const sumEl = document.createElement('p');
+        sumEl.className = 'orbit-card-summary';
+        sumEl.appendChild(document.createTextNode(cleanSummary));
+        body.appendChild(sumEl);
       }
 
-      card.appendChild(metaEl);
-
-      // ── 3. Summary ──
-      const summaryEl = document.createElement('p');
-      summaryEl.className = 'orbit-card-summary';
-      summaryEl.style.setProperty('color', 'rgba(255,255,255,0.58)', 'important');
-      // Sanitize: reject 'null', 'nulo', 'nul', 'nein' etc. (translation artifacts)
-      const cleanSummary = (['null','nulo','nul','nein','пусто','空','없음'].includes((n.summary||'').trim().toLowerCase()))
-        ? '' : (n.summary || '');
-      summaryEl.appendChild(document.createTextNode(cleanSummary));
-      card.appendChild(summaryEl);
-
-      // ── 4. Footer: readtime + trend + engagement ──
+      // Footer
       const footer = document.createElement('div');
       footer.className = 'orbit-card-footer';
       footer.innerHTML =
-        `<span class="orbit-card-readtime">📖 ${esc(n.readTime || '3 min')}</span>` +
+        `<span class="orbit-card-readtime">${esc(n.readTime || '2 min')}</span>` +
         `<span class="orbit-card-trend ${rising?'rising':'stable'}">${rising?'↑':'→'} ${esc(rising?(t('rising')||'Rising'):(t('stable')||'Stable'))}</span>` +
         `<div class="orbit-card-actions">` +
           (engScore ? `<span class="orbit-card-eng" style="color:${liked?'#00FF88':'#FF6B35'}">${liked?'+':''}${engScore}</span>` : '') +
-          `<button class="orbit-card-btn${liked?' liked':''} eng-like" data-id="${esc(n.id)}">❤️</button>` +
+          `<button class="orbit-card-btn${liked?' liked':''} eng-like" data-id="${esc(n.id)}">❤</button>` +
           `<button class="orbit-card-btn${passed?' passed':''} eng-pass" data-id="${esc(n.id)}">↓</button>` +
         `</div>`;
-      card.appendChild(footer);
+      body.appendChild(footer);
+      card.appendChild(body);
 
       footer.querySelector('.eng-like')?.addEventListener('click', e => {
         e.stopPropagation(); likeArticle(n.id); this._renderCards(this._currentNews);
@@ -1503,13 +1480,11 @@ export class UIManager {
       hubCatsEl.innerHTML = catDefs.map(c => {
         const count    = c.cat === 'all' ? allNews.length : (counts[c.cat] || 0);
         const isGlobal = count === 0 && c.cat !== 'all';
-        const badge    = count > 0 && c.cat !== 'all'
-          ? `<span style="font-size:9px;background:rgba(255,255,255,0.18);padding:1px 5px;border-radius:99px;margin-left:4px;font-weight:700">${count}</span>`
-          : isGlobal
-            ? `<span style="font-size:9px;background:rgba(0,212,255,0.15);color:#00D4FF;padding:1px 5px;border-radius:99px;margin-left:4px;font-weight:700">global</span>`
-            : '';
-        return `<button class="hub-cat" data-cat="${c.cat}" style="opacity:${isGlobal?'0.65':'1'}">
-          ${c.icon} ${esc(c.label)}${badge}
+        const countBadge = count > 0
+          ? `<span class="hub-cat-count">${count}</span>`
+          : (isGlobal ? `<span class="hub-cat-count hub-cat-global-badge">+</span>` : '');
+        return `<button class="hub-cat" data-cat="${c.cat}"${isGlobal?' style="opacity:0.55"':''}>
+          <span class="hub-cat-icon">${c.icon}</span><span class="hub-cat-lbl">${esc(c.label)}</span>${countBadge}
         </button>`;
       }).join('');
 
