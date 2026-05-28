@@ -288,7 +288,7 @@ function updateCounts(news) {
     }
   });
   const liveEl = document.querySelector('.sidebar-live span');
-  if (liveEl) liveEl.textContent = `${news.length} live stories`;
+  if (liveEl) liveEl.textContent = `${news.length} ${t('live_stories') || 'live stories'}`;
 }
 
 // ─── Translation ──────────────────────────────────────────────────────────────
@@ -465,10 +465,18 @@ async function boot() {
       if (_liveNewsRaw.length > 0) _revealApp();
     },
 
-    // Connection error — show offline mode
+    // Connection error — show reconnecting, restore count when back online
     onError: () => {
       const liveEl = document.querySelector('.sidebar-live span');
-      if (liveEl) liveEl.textContent = 'Reconnecting…';
+      // Delay showing "Reconnecting" — SSE often reconnects within 2s silently
+      const reconnTimer = setTimeout(() => {
+        if (liveEl) liveEl.textContent = t('lbl_reconnecting') || 'Reconnecting…';
+      }, 2500);
+      // Cancel the message if we reconnect before the delay
+      document.addEventListener('orbit:connected', () => {
+        clearTimeout(reconnTimer);
+        if (liveEl && _liveNewsRaw.length) liveEl.textContent = `${_liveNewsRaw.length} ${t('live_stories') || 'live stories'}`;
+      }, { once: true });
     },
   });
 

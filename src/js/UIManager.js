@@ -399,7 +399,7 @@ export class UIManager {
       srcRow.className = 'orbit-card-srcrow';
       const flag14 = n.country ? flagHtml(n.country, 14) : '';
       const srcLabel = isMulti
-        ? `${coverageCount} ${t('sources_many') || 'fuentes'}`
+        ? `${n.source || 'News'} +${coverageCount - 1}`
         : (n.source || 'News');
       const multiGlobe = (isMulti && n._countries?.length > 1)
         ? `<span class="orbit-card-global-badge">Global</span>` : '';
